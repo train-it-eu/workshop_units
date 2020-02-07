@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 #include "length.h"
-#include "dimension.h"
+#include "time.h"
 #include <limits>
 #include <utility>
 
@@ -72,7 +72,6 @@ namespace units {
 namespace {
 
   using namespace units;
-  using namespace units::literals;
 
   template<typename Rep = double>
   using length = quantity<Rep>;
@@ -127,6 +126,7 @@ namespace {
   static_assert(quantity<metre, float>(km).count() == 1000.0);
   static_assert(quantity<metre, my_value<float>>(km).count() == 1000.0);
   static_assert(quantity<metre, int>(1_km).count() == 1000);
+//  static_assert(quantity<metre, int>(1_s).count() == 1);   // should not compile
 //  static_assert(quantity<kilometre, int>(1010_m).count() == 1);   // should not compile
   static_assert(quantity<kilometre, int>(quantity_cast<quantity<kilometre, int>>(1010_m)).count() == 1);
 
@@ -376,5 +376,18 @@ namespace {
   static_assert(std::is_same_v<make_dimension<e<0, 1>, e<0, -1>, e<1, 1>>, dimension<e<1, 1>>>);
   static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
   static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
+
+  // time
+
+//  static_assert(1_s == 1_m);  // should not compile
+  static_assert(2000_ms == 2_s);
+  static_assert(1_h == 3600_s);
+
+  // length
+
+  static_assert(1_km == 1000_m);
+  static_assert(1_km + 1_m == 1001_m);
+  static_assert(10_km / 5_km == 2);
+  static_assert(10_km / 2 == 5_km);
 
 }  // namespace

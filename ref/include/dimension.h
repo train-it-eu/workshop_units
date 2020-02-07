@@ -71,4 +71,36 @@ namespace units {
   template<typename... Exponents>
   struct dimension;
 
+  // make_dimension
+  namespace detail {
+
+    template<typename D>
+    struct dim_consolidate;
+
+    template<>
+    struct dim_consolidate<dimension<>> {
+      using type = dimension<>;
+    };
+
+    template<typename E>
+    struct dim_consolidate<dimension<E>> {
+      using type = dimension<E>;
+    };
+
+    template<typename E1, typename... ERest>
+    struct dim_consolidate<dimension<E1, ERest...>> {
+      using type = type_list_push_front<typename dim_consolidate<dimension<ERest...>>::type, E1>;
+    };
+
+    template<typename D, int V1, int V2, typename... ERest>
+    struct dim_consolidate<dimension<exp<D, V1>, exp<D, V2>, ERest...>> {
+      using type = std::conditional_t<V1 + V2 == 0, typename dim_consolidate<dimension<ERest...>>::type,
+                                      typename dim_consolidate<dimension<exp<D, V1 + V2>, ERest...>>::type>;
+    };
+
+  }
+
+  template<typename... Es>
+  using make_dimension = typename detail::dim_consolidate<type_list_sort<dimension<Es...>, exp_less>>::type;
+
 }  // namespace units

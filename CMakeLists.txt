@@ -53,10 +53,12 @@ add_library(units
     
     src/tests.cpp
     
+    include/base_dimensions.h
     include/common_ratio.h
     include/dimension.h
     include/length.h
     include/quantity.h
+    include/time.h
     include/type_list.h
     include/unit.h
 )

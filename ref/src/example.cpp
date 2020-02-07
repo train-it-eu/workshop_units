@@ -20,17 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "dimension.h"
+#include "length.h"
+#include "time.h"
 
 namespace {
 
   using namespace units;
 
-  template<int Id, int Value>
-  using e = exp<dim_id<Id>, Value>;
-
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, 1>, e<1, 1>>, dimension<e<0, 2>, e<1, 2>>>);
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
+//  static_assert(quantity<meter, int>(1_s).count() == 1);   // should not compile 
+//  static_assert(1_s == 1_m);   // should not compile
+  static_assert(1_h == 3600_s);
+  static_assert(1_km + 1_m == 1001_m);
+  static_assert(10_km / 5_km == 2);
+  static_assert(10_km / 2 == 5_km);
 
 }  // namespace

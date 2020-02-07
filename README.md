@@ -34,45 +34,40 @@ static_assert(2_km / 2_kmph == 1_h);
    use the reference implementation for the next tasks (instead using the one you wrote) than
    copy headers from `ref/include` to `include` before starting the assignment.
 3. Reference unit tests and examples are always in `ref/src` directory. The target of each task is
-   to make that code compile and pass without any issues.
+   to make that code compile and pass without any issues. 
 4. If you want to add additional unit tests than please do so in `src/tests.cpp` file.
 
 
 ## Task
 
 ```cpp
-template<int Id, int Value>
-using e = exp<dim_id<Id>, Value>;
-
-static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, 1>, e<1, 1>>, dimension<e<0, 2>, e<1, 2>>>);
-static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
-static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
+//  static_assert(quantity<meter, int>(1_s).count() == 1);   // should not compile 
+//  static_assert(1_s == 1_m);   // should not compile
+static_assert(1_h == 3600_s);
+static_assert(1_km + 1_m == 1001_m);
+static_assert(10_km / 5_km == 2);
+static_assert(10_km / 2 == 5_km);
 ```
 
-1. Create `make_dimension` that always will provide consistent dimension specifications:
+1. In a `base_dimensions.h` header define identifiers for base physical dimensions you
+    plan to support, i.e.:
 
     ```cpp
-    namespace detail {
-
-      template<typename D>
-      struct dim_consolidate;
-
-      template<>
-      struct dim_consolidate<dimension<>> {
-        using type = dimension<>;
-      };
-
-      // ...
-
-    }  // namespace detail
-
-    template<typename... Es>
-    using make_dimension = typename detail::dim_consolidate<type_list_sort<dimension<Es...>, exp_less>>::type;
+    struct base_dim_length : dim_id<0> {};
     ```
 
-    After running `make_dimension`:
-    - all exponents are sorted and packed into `dimension`
-    - in case there is more than one exponent with the same `dim_id` on the list, all `exp`
-      with the same id should be consolidated into one with a proper resulting exponent value
-    - if all existing dimensions will eliminate themselves (accumulation results with `0`)
-      `dimension<>` is returned
+2. Add dimensions support to `unit`
+
+    ```cpp
+    template<typename Dimension, typename Ratio>
+    struct unit;
+    ```
+
+    - add `dimension` member type
+    - verify that `Dimension` template parameter is an instantiation of `units::dimension`
+    - make sure that `quantity` binary operators do not participate in the overload
+        resolution if `Unit2` has different dimension than `quantity::unit`
+
+3. In `length.h` add `dimension_length` alias to a result of `make_dimension` for `base_dim_length`.
+4. Update length units to use `dimension_length`.
+5. Add all time specific definitions to `time.h`.
