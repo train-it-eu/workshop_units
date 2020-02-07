@@ -22,31 +22,12 @@
 
 #pragma once
 
-#include "base_dimensions.h"
-#include "quantity.h"
+#include "dimension.h"
 
 namespace units {
 
-  using dimension_length = make_dimension<exp<base_dim_length, 1>>; 
-
-  using millimetre = unit<dimension_length, std::milli>;
-  using metre = unit<dimension_length, std::ratio<1>>;
-  using kilometre = unit<dimension_length, std::kilo>;
-
-  inline namespace literals {
-
-    // mm
-    constexpr auto operator""_mm(unsigned long long l) { return quantity<millimetre, std::int64_t>(l); }
-    constexpr auto operator""_mm(long double l) { return quantity<millimetre, long double>(l); }
-
-    // m
-    constexpr auto operator""_m(unsigned long long l) { return quantity<metre, std::int64_t>(l); }
-    constexpr auto operator""_m(long double l) { return quantity<metre, long double>(l); }
-
-    // km
-    constexpr auto operator""_km(unsigned long long l) { return quantity<kilometre, std::int64_t>(l); }
-    constexpr auto operator""_km(long double l) { return quantity<kilometre, long double>(l); }
-
-  }  // namespace literals
+  struct base_dim_length : dim_id<0> {};
+  struct base_dim_mass : dim_id<1> {};
+  struct base_dim_time : dim_id<2> {};
 
 }  // namespace units

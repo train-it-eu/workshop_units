@@ -22,6 +22,7 @@
 
 #include "length.h"
 #include "time.h"
+#include "frequency.h"
 #include <limits>
 #include <utility>
 
@@ -390,4 +391,9 @@ namespace {
   static_assert(10_km / 5_km == 2);
   static_assert(10_km / 2 == 5_km);
 
-}  // namespace
+  // frequency
+
+  static_assert(1 / 1_s == 1_Hz);
+  static_assert(1000 / 1_s == 1_kHz);
+  
+  }  // namespace

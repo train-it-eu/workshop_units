@@ -20,18 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "length.h"
-#include "time.h"
+#include "frequency.h"
 
 namespace {
 
   using namespace units;
 
-//  static_assert(quantity<meter, int>(1_s).count() == 1);   // should not compile 
-//  static_assert(1_s == 1_m);   // should not compile
-  static_assert(1_h == 3600_s);
-  static_assert(1_km + 1_m == 1001_m);
-  static_assert(10_km / 5_km == 2);
-  static_assert(10_km / 2 == 5_km);
+  static_assert(1 / 1_s == 1_Hz);
+  static_assert(1000 / 1_s == 1_kHz);
 
 }  // namespace

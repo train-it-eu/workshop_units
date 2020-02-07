@@ -41,33 +41,10 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-//  static_assert(quantity<meter, int>(1_s).count() == 1);   // should not compile 
-//  static_assert(1_s == 1_m);   // should not compile
-static_assert(1_h == 3600_s);
-static_assert(1_km + 1_m == 1001_m);
-static_assert(10_km / 5_km == 2);
-static_assert(10_km / 2 == 5_km);
+static_assert(1 / 1_s == 1_Hz);
+static_assert(1000 / 1_s == 1_kHz);
 ```
 
-1. In a `base_dimensions.h` header define identifiers for base physical dimensions you
-    plan to support, i.e.:
-
-    ```cpp
-    struct base_dim_length : dim_id<0> {};
-    ```
-
-2. Add dimensions support to `unit`
-
-    ```cpp
-    template<typename Dimension, typename Ratio>
-    struct unit;
-    ```
-
-    - add `dimension` member type
-    - verify that `Dimension` template parameter is an instantiation of `units::dimension`
-    - make sure that `quantity` binary operators do not participate in the overload
-        resolution if `Unit2` has different dimension than `quantity::unit`
-
-3. In `length.h` add `dimension_length` alias to a result of `make_dimension` for `base_dim_length`.
-4. Update length units to use `dimension_length`.
-5. Add all time specific definitions to `time.h`.
+1. Add definitions to `frequency.h` header (at least `Hz` and `kHz`).
+2. Add the following operation to `quantity` interface
+    - `operator/(scalar, quantity)`

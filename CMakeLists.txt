@@ -56,6 +56,7 @@ add_library(units
     include/base_dimensions.h
     include/common_ratio.h
     include/dimension.h
+    include/frequency.h
     include/length.h
     include/quantity.h
     include/time.h

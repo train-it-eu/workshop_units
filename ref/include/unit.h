@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "dimension.h"
 #include <ratio>
 #include <type_traits>
 
@@ -37,10 +38,12 @@ namespace units {
 
   // unit
 
-  template<typename Ratio>
+  template<typename Dimension, typename Ratio>
   struct unit {
+    using dimension = Dimension;
     using ratio = Ratio;
 
+    static_assert(is_dimension<dimension>, "dimension must be a specialization of units::dimension");
     static_assert(is_ratio<ratio>, "ratio must be a specialization of std::ratio");
     static_assert(ratio::num * ratio::den > 0, "ratio must be positive");
   };
@@ -50,7 +53,7 @@ namespace units {
   template<typename T>
   inline constexpr bool is_unit = false;
 
-  template<typename Ratio>
-  inline constexpr bool is_unit<unit<Ratio>> = true;
+  template<typename Dimension, typename Ratio>
+  inline constexpr bool is_unit<unit<Dimension, Ratio>> = true;
 
 }  // namespace units
