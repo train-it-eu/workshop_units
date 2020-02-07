@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "common_ratio.h"
 #include "unit.h"
 #include <limits>
 #include <type_traits>
@@ -57,6 +58,61 @@ namespace units {
 
   template<typename Rep, class Ratio>
   inline constexpr bool is_quantity<quantity<Rep, Ratio>> = true;
+
+  // quantity_cast
+
+  namespace detail {
+
+    template<typename To, typename CRatio, typename CRep, bool NumIsOne = false, bool DenIsOne = false>
+    struct quantity_cast_impl {
+      template<typename Unit, typename Rep>
+      static constexpr To cast(const quantity<Unit, Rep>& q)
+      {
+        return To(static_cast<typename To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CRatio::num) /
+                                                static_cast<CRep>(CRatio::den)));
+      }
+    };
+
+    template<typename To, typename CRatio, typename CRep>
+    struct quantity_cast_impl<To, CRatio, CRep, true, true> {
+      template<typename Unit, typename Rep>
+      static constexpr To cast(const quantity<Unit, Rep>& q)
+      {
+        return To(static_cast<typename To::rep>(q.count()));
+      }
+    };
+
+    template<typename To, typename CRatio, typename CRep>
+    struct quantity_cast_impl<To, CRatio, CRep, true, false> {
+      template<typename Unit, typename Rep>
+      static constexpr To cast(const quantity<Unit, Rep>& q)
+      {
+        return To(static_cast<typename To::rep>(static_cast<CRep>(q.count()) / static_cast<CRep>(CRatio::den)));
+      }
+    };
+
+    template<typename To, typename CRatio, typename CRep>
+    struct quantity_cast_impl<To, CRatio, CRep, false, true> {
+      template<typename Unit, typename Rep>
+      static constexpr To cast(const quantity<Unit, Rep>& q)
+      {
+        return To(static_cast<typename To::rep>(static_cast<CRep>(q.count()) * static_cast<CRep>(CRatio::num)));
+      }
+    };
+
+  }  // namespace detail
+
+  template<typename To, typename Unit, typename Rep,
+           Requires<is_quantity<To>> = true>
+  [[nodiscard]] constexpr To quantity_cast(const quantity<Unit, Rep>& q)
+  {
+    using c_ratio = std::ratio_divide<typename Unit::ratio, typename To::unit::ratio>;
+    using c_rep = std::common_type_t<typename To::rep, Rep, intmax_t>;
+    using cast = detail::quantity_cast_impl<To, c_ratio, c_rep, c_ratio::num == 1, c_ratio::den == 1>;
+    return cast::cast(q);
+  }
+
+  // quantity
 
   template<typename Unit, typename Rep = double>
   class quantity {

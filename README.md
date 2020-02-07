@@ -41,45 +41,37 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
+using millimetre = unit<std::milli>;
 using metre = unit<std::ratio<1>>;
-using kilometre = unit<std::ratio<1000>>;
+using kilometre = unit<std::kilo>;
 
-static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
-static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
+static_assert(quantity<metre, int>(quantity<kilometre, int>(1)) == quantity<metre, int>(1000));
+static_assert(quantity<metre, int>(1) + quantity<kilometre, int>(1) == quantity<millimetre, int>(1'001'000));
 ```
 
-1. Copy `ref/include/common_ratio.h` to the `include` directory and include in your
-    `quantity.h` header.
-2. Implement `quantity_cast` function template
+1. Modify converting constructor to take `quantity` of any `Ratio2` as a its argument. Use
+   `quantity_cast` to convert value of source `quantity` to the destination one.
+2. If `Rep2` template argument of a converting constructor is not a floating-point type than the
+   converting constructor should not participate in the overload resolution unless `Ratio2` is a
+   multiplicity of `ratio`.
+3. Convert all binary functions to take `quantity` with any `Ratio2` and to return
+   `common_quantity`:
 
     ```cpp
-    template<typename To, typename Unit, typename Rep,
-    [[nodiscard]] constexpr To quantity_cast(const quantity<Unit, Rep>& q);
+    template<typename Q1, typename Q2, typename Rep = std::common_type_t<typename Q1::rep, typename Q2::rep>>
+    using common_quantity = quantity<unit<common_ratio<typename Q1::unit::ratio, typename Q2::unit::ratio>>, Rep>;
     ```
-
-    - it should multiply the value provided by `q` with `c_ratio` that is a result of division
-    of `Unit::ratio` and `To::unit::ratio`
-
-    The purpose of `quantity_cast` is to allow the user to perform lossy conversions, e.g.
-
-    ```cpp
-    //  static_assert(quantity<metre, int>(quantity<metre, float>(3.14)).count() == 3);   // should not compile
-    static_assert(quantity<metre, int>(quantity_cast<quantity<metre, int>>(quantity<metre, float>(3.14))).count() == 3);
-    ```
-
-3. `quantity_cast` should participate in the overload resolution only if `To` template parameter
-   is of `quantity` type.
-4. Bonus points for making `quantity_cast` perform division and multiplication operations only when
-   needed (the value of operation argument is different than `1`).
 
     Hint:
 
     ```cpp
-    template<typename To, typename CRatio, typename CRep, bool NumIsOne = false, bool DenIsOne = false>
-    struct quantity_cast_impl {
-      template<typename Unit, typename Rep>
-      static constexpr To cast(const quantity<Unit, Rep>& q)
-    };
+    template<typename Unit2, typename Rep2>
+    [[nodiscard]] friend constexpr auto operator+(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
+        -> common_quantity<quantity, quantity<Unit2, Rep2>, decltype(lhs.count() + rhs.count())>
+    {
+      using ret = common_quantity<quantity, quantity<Unit2, Rep2>, decltype(lhs.count() + rhs.count())>;
+      return ret(ret(lhs).count() + ret(rhs).count());
+    }
     ```
 
-5. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
+4. Ensure that all commented checks in `tests.cpp` produce a compile-time error.

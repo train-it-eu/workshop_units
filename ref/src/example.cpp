@@ -27,10 +27,11 @@ namespace {
 
   using namespace units;
 
+  using millimetre = unit<std::milli>;
   using metre = unit<std::ratio<1>>;
-  using kilometre = unit<std::ratio<1000>>;
+  using kilometre = unit<std::kilo>;
 
-  static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
-  static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
+  static_assert(quantity<metre, int>(quantity<kilometre, int>(1)) == quantity<metre, int>(1000));
+  static_assert(quantity<metre, int>(1) + quantity<kilometre, int>(1) == quantity<millimetre, int>(1'001'000));
 
 }  // namespace
