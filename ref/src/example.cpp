@@ -20,13 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "frequency.h"
+#include "dimension.h"
 
 namespace {
 
   using namespace units;
 
-  static_assert(1 / 1_s == 1_Hz);
-  static_assert(1000 / 1_s == 1_kHz);
+  template<int Id, int Value>
+  using e = exp<dim_id<Id>, Value>;
+
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, 1>>>,
+                              dimension<e<0, 1>, e<1, 2>, e<2, 1>>>);
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, -1>>>,
+                              dimension<e<0, 1>, e<2, 1>>>);
+
+  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<1, 1>>>,
+                              dimension<e<0, 1>, e<1, -1>>>);
+  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<0, 1>>>,
+                              dimension<>>);
 
 }  // namespace

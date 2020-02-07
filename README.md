@@ -41,10 +41,30 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-static_assert(1 / 1_s == 1_Hz);
-static_assert(1000 / 1_s == 1_kHz);
+template<int Id, int Value>
+using e = exp<dim_id<Id>, Value>;
+
+static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, 1>>>,
+                            dimension<e<0, 1>, e<1, 2>, e<2, 1>>>);
+static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, -1>>>,
+                            dimension<e<0, 1>, e<2, 1>>>);
+
+static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<1, 1>>>,
+                            dimension<e<0, 1>, e<1, -1>>>);
+static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<0, 1>>>,
+                            dimension<>>);
 ```
 
-1. Add definitions to `frequency.h` header (at least `Hz` and `kHz`).
-2. Add the following operation to `quantity` interface
-    - `operator/(scalar, quantity)`
+1. Add `dimension_multiply` and `dimension_divide` to `dimension.h`
+
+    ```cpp
+    template<typename D1, typename D2>
+    using dimension_multiply = /* ... */;
+    ```
+
+    ```cpp
+    template<typename D1, typename D2>
+    using dimension_divide = /* ... */;
+    ```
+
+    Assume that `D1` and `D2` are sorted already.

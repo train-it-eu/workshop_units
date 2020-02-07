@@ -111,4 +111,20 @@ namespace units {
   template<typename... Es>
   using make_dimension = typename detail::dim_consolidate<type_list_sort<dimension<Es...>, exp_less>>::type;
 
+  // dim_invert
+  namespace detail {
+
+    template<typename E>
+    struct dim_invert_impl;
+
+    template<typename... Es>
+    struct dim_invert_impl<dimension<Es...>> {
+      using type = dimension<exp_invert<Es>...>;
+    };
+
+  }
+
+  template<typename D>
+  using dim_invert = typename detail::dim_invert_impl<D>::type;
+
 }  // namespace units

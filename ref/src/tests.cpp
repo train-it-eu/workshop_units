@@ -378,6 +378,24 @@ namespace {
   static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
   static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
 
+  // dimension_multiply
+
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>>, dimension<e<1, 1>>>,
+                               dimension<e<0, 1>, e<1, 1>>>);
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<3, 1>>>,
+                               dimension<e<0, 1>, e<1, 1>, e<2, 1>, e<3, 1>>>);
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, 1>>>,
+                               dimension<e<0, 1>, e<1, 2>, e<2, 1>>>);
+  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, -1>>>,
+                               dimension<e<0, 1>, e<2, 1>>>);
+
+  // dimension_divide
+
+  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<1, 1>>>,
+                               dimension<e<0, 1>, e<1, -1>>>);
+  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<0, 1>>>,
+                               dimension<>>);
+
   // time
 
 //  static_assert(1_s == 1_m);  // should not compile

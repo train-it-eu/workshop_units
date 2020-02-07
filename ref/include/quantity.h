@@ -259,6 +259,15 @@ namespace units {
       return ret(q.count() / v);
     }
 
+    template<typename Rep2,
+             Requires<!is_quantity<Rep2>> = true>
+    [[nodiscard]] friend constexpr auto operator/(const Rep2& v, const quantity& q)
+        -> quantity<units::unit<dim_invert<typename unit::dimension>, typename unit::ratio>, decltype(std::declval<Rep2>() / std::declval<Rep>())>
+    {
+      using ret = quantity<units::unit<dim_invert<typename unit::dimension>, typename unit::ratio>, decltype(v / q.count())>;
+      return ret(v / q.count());
+    }
+
     template<typename Unit2, typename Rep2,
              Requires<same_dim<unit, Unit2>> = true>
     [[nodiscard]] friend constexpr auto operator/(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
