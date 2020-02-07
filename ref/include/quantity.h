@@ -55,8 +55,15 @@ namespace units {
     constexpr quantity(const quantity& q) = default;
 
     template<typename Rep2,
-             Requires<!is_quantity<Rep2>> = true>
+             Requires<!is_quantity<Rep2> &&
+                      std::is_convertible_v<Rep2, rep> &&
+                      (std::is_floating_point_v<rep> || !std::is_floating_point_v<Rep2>)> = true>
     constexpr explicit quantity(const Rep2& v): value_(static_cast<rep>(v)) {}
+
+    template<typename Rep2,
+             Requires<std::is_convertible_v<Rep2, rep> &&
+                      (std::is_floating_point_v<rep> || !std::is_floating_point_v<Rep2>)> = true>
+    constexpr quantity(const quantity<Rep2>& q) : value_{static_cast<rep>(q.count())} {}
 
     constexpr quantity& operator=(const quantity& other) = default;
 
@@ -68,6 +75,22 @@ namespace units {
 
     [[nodiscard]] constexpr quantity operator+() const { return *this; }
     [[nodiscard]] constexpr quantity operator-() const { return quantity(-count()); }
+
+    constexpr quantity& operator++()
+    {
+      ++value_;
+      return *this;
+    }
+
+    [[nodiscard]] constexpr quantity operator++(int) { return quantity(value_++); }
+
+    constexpr quantity& operator--()
+    {
+      --value_;
+      return *this;
+    }
+
+    [[nodiscard]] constexpr quantity operator--(int) { return quantity(value_--); }
 
     constexpr quantity& operator+=(const quantity& q)
     {
@@ -87,6 +110,20 @@ namespace units {
     constexpr quantity& operator/=(const Rep& v)
     {
       value_ /= v;
+      return *this;
+    }
+    template<typename T = Rep,
+             Requires<!std::is_floating_point_v<T>> = true>
+    constexpr quantity& operator%=(const quantity& q)
+    {
+      value_ %= q.count();
+      return *this;
+    }
+    template<typename T = Rep,
+             Requires<!std::is_floating_point_v<T>> = true>
+    constexpr quantity& operator%=(const Rep& v)
+    {
+      value_ %= v;
       return *this;
     }
 
@@ -136,6 +173,23 @@ namespace units {
         -> decltype(std::declval<Rep>() / std::declval<Rep2>())
     {
       return lhs.count() / rhs.count();
+    }
+
+    template<typename Rep2, typename T = Rep,
+             Requires<!is_quantity<Rep2> &&
+                      !std::is_floating_point_v<T> &&
+                      !std::is_floating_point_v<Rep2>> = true>
+    [[nodiscard]] friend constexpr quantity operator%(const quantity& q, const Rep2& v)
+    {
+      return quantity(q.count() % v);
+    }
+
+    template<typename Rep2, typename T = Rep,
+             Requires<!std::is_floating_point_v<T> &&
+                      !std::is_floating_point_v<Rep2>> = true>
+    [[nodiscard]] friend constexpr quantity operator%(const quantity& lhs, const quantity<Rep2>& rhs)
+    {
+      return quantity(lhs.count() % rhs.count());
     }
 
     template<typename Rep2>

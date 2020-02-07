@@ -21,20 +21,49 @@
 // SOFTWARE.
 
 #include "quantity.h"
+#include <utility>
+
+namespace {
+
+  template<typename T>
+  class my_value {
+    T value_{};
+  public:
+    my_value() = default;
+    constexpr my_value(T v) : value_(std::move(v)) {}
+    constexpr my_value& operator+=(const my_value& other) { value_ += other.value_; return *this; }
+    constexpr my_value& operator-=(const my_value& other) { value_ -= other.value_; return *this; }
+    constexpr my_value& operator*=(const my_value& other) { value_ *= other.value_; return *this; }
+    constexpr my_value& operator/=(const my_value& other) { value_ /= other.value_; return *this; }
+    constexpr operator const T&() const & { return value_; }
+  };
+
+} // namespace
+
+namespace units {
+
+  template<typename T>
+  inline constexpr bool treat_as_floating_point<my_value<T>> = std::is_floating_point_v<T>;
+
+  template<typename T>
+  struct quantity_values<my_value<T>> {
+    static constexpr my_value<T> zero() { return my_value<T>(0); }
+    static constexpr my_value<T> max() { return std::numeric_limits<T>::max(); }
+    static constexpr my_value<T> min() { return std::numeric_limits<T>::lowest(); }
+  };
+
+}  // namespace units
 
 namespace {
 
   using namespace units;
 
-  constexpr quantity<int> kilometre(1000);
-  constexpr quantity<> d(kilometre);
-  static_assert(d.count() == 1000);
+  constexpr quantity<my_value<int>> d1(1), d2(2);
+  constexpr quantity<int> d3 = d1 + d2;
+  static_assert(d3.count() == 3);
 
-  static_assert((++quantity<int>(kilometre)).count() == 1001);
-  static_assert((quantity<int>(kilometre)++).count() == 1000);
-  static_assert((--quantity<int>(kilometre)).count() == 999);
-  static_assert((quantity<int>(kilometre)--).count() == 1000);
-
-  static_assert(quantity<int>(kilometre) % 10 == quantity<int>(0));
+  constexpr quantity<float> d4(3.0);
+  constexpr quantity<my_value<float>> d5 = d4 + d3;
+  static_assert(d5.count() == 6.0);
 
 }  // namespace

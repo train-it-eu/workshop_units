@@ -41,37 +41,48 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-constexpr quantity<int> kilometre(1000);
-constexpr quantity<> d(kilometre);
-static_assert(d.count() == 1000);
+template<typename T>
+class my_value;
 
-static_assert((++quantity<int>(kilometre)).count() == 1001);
-static_assert((quantity<int>(kilometre)++).count() == 1000);
-static_assert((--quantity<int>(kilometre)).count() == 999);
-static_assert((quantity<int>(kilometre)--).count() == 1000);
+namespace units {
 
-static_assert(quantity<int>(kilometre) % 10 == quantity<int>(0));
+  template<typename T>
+  inline constexpr bool treat_as_floating_point<my_value<T>> = std::is_floating_point_v<T>;
+
+  template<typename T>
+  struct quantity_values<my_value<T>> {
+    static constexpr my_value<T> zero() { return my_value<T>(0); }
+    static constexpr my_value<T> max() { return std::numeric_limits<T>::max(); }
+    static constexpr my_value<T> min() { return std::numeric_limits<T>::lowest(); }
+  };
+
+}  // namespace units
+
+constexpr quantity<my_value<int>> d1(1), d2(2);
+constexpr quantity<int> d3 = d1 + d2;
+static_assert(d3.count() == 3);
+
+constexpr quantity<float> d4(3.0);
+constexpr quantity<my_value<float>> d5 = d4 + d3;
+static_assert(d5.count() == 6.0);
 ```
 
-1. Add converting constructor
+1. Add the following customization points to `quantity`
+    - `units::treat_as_floating_point<T>` that allows the user to specify that his own type provided as
+      `Rep` behaves like a floating point type
 
-    ```cpp
-    template<class Rep2>
-    constexpr quantity(const quantity<Rep2>& q);
-    ```
+        ```cpp
+        template<typename T>
+        inline constexpr bool treat_as_floating_point;
+        ```
 
-2. Both converting constructors should participate in the overload resolution only if:
-    - destination `Rep` is convertible from source `Rep`
-    - either destination `Rep` is of floating point type or source `Rep` is not of floating
-      point type
+    - `units::quantity_values<T>` that allows providing custom `zero`, `min`, and `max` for `Rep`
 
-    (that is, a `quantity` with an integer representation cannot be constructed from a
-    floating-point value, but a `quantity` with a floating-point representation can be
-    constructed from an integer value)
-
-3. Add pre- and post- increment and decrement operators.
-
-4. Add support for modulo operators and ensure that they do not participate in overload
-    resolution for floating-point representations.
-
-5. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
+        ```cpp
+        template<typename Rep>
+        struct quantity_values {
+          static constexpr Rep zero();
+          static constexpr Rep max();
+          static constexpr Rep min();
+        };
+        ```
