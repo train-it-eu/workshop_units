@@ -20,20 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "type_list.h"
+#pragma once
 
-namespace {
+#include "quantity.h"
 
-  using namespace units;
+namespace units {
 
-  template<typename... Types>
-  struct type_list;
+  using millimetre = unit<std::milli>;
+  using metre = unit<std::ratio<1>>;
+  using kilometre = unit<std::kilo>;
 
-  static_assert(std::is_same_v<type_list_push_front<type_list<long>, int>, type_list<int, long>>);
-  static_assert(std::is_same_v<type_list_push_back<type_list<int>, long>, type_list<int, long>>);
+  inline namespace literals {
 
-  using split = type_list_split<type_list<int, long, double>, 2>;
-  static_assert(std::is_same_v<split::first_list, type_list<int, long>>);
-  static_assert(std::is_same_v<split::second_list, type_list<double>>);
+    // mm
+    constexpr auto operator""_mm(unsigned long long l) { return quantity<millimetre, std::int64_t>(l); }
+    constexpr auto operator""_mm(long double l) { return quantity<millimetre, long double>(l); }
 
-}  // namespace
+    // m
+    constexpr auto operator""_m(unsigned long long l) { return quantity<metre, std::int64_t>(l); }
+    constexpr auto operator""_m(long double l) { return quantity<metre, long double>(l); }
+
+    // km
+    constexpr auto operator""_km(unsigned long long l) { return quantity<kilometre, std::int64_t>(l); }
+    constexpr auto operator""_km(long double l) { return quantity<kilometre, long double>(l); }
+
+  }  // namespace literals
+
+}  // namespace units

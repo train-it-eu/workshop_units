@@ -41,12 +41,59 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-static_assert(1_km == 1'000_m);
-static_assert(1_m + 1_km == 1'001'000_mm);
-static_assert(1.3_km == 1'300_m);
+template<typename... Types>
+struct type_list;
+
+static_assert(std::is_same_v<type_list_push_front<type_list<long>, int>, type_list<int, long>>);
+static_assert(std::is_same_v<type_list_push_back<type_list<int>, long>, type_list<int, long>>);
+
+using split = type_list_split<type_list<int, long, double>, 2>;
+static_assert(std::is_same_v<split::first_list, type_list<int, long>>);
+static_assert(std::is_same_v<split::second_list, type_list<double>>);
 ```
 
-1. In a new header `length.h` define units for metre, millimetre, and kilometre.
-2. Create a new inline namespace `units::literals` and define user defined literals there
-   for above units for both integral and floating point arguments.
-3. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
+1. In a new header `type_list.h` based on the below hint implement `type_list_push_front`
+    to insert additional types at the front of existing `type_list`:
+
+    ```cpp
+    namespace detail {
+
+        template<typename List, typename... Types>
+        struct type_list_push_front_impl;
+
+        // partial specialization here ...
+
+    }
+
+    template<TypeList List, typename... Types>
+    using type_list_push_front = typename detail::type_list_push_front_impl<List, Types...>::type;
+    ```
+
+2. Add `type_list_push_back`
+3. Define `type_list_split` primary class template and its partial specialization that will provide
+    `first_list` and `second_list` member types:
+
+    ```cpp
+    template<typename TypeList, std::size_t N>
+    struct type_list_split;
+    ```
+
+   - `first_list` should contain all the types from a `TypeList` with index less than `N`
+   - `second_list` should provide the types from a `TypeList` with index equal or greater than `N`
+   - Hint: partial specialization may use the following helper class template:
+
+        ```cpp
+        template<template<typename...> typename List, std::size_t Idx, std::size_t N, typename... Types>
+        struct split_impl;
+
+        template<template<typename...> typename List, std::size_t Idx, std::size_t N>
+        struct split_impl<List, Idx, N> {
+          using first_list = List<>;
+          using second_list = List<>;
+        };
+
+        template<template<typename...> typename List, std::size_t Idx, std::size_t N, typename T, typename... Rest>
+        struct split_impl<List, Idx, N, T, Rest...> : split_impl<List, Idx + 1, N, Rest...> {
+          // ...
+        };
+        ```

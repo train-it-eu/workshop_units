@@ -56,6 +56,7 @@ add_library(units
     include/common_ratio.h
     include/length.h
     include/quantity.h
+    include/type_list.h
     include/unit.h
 )
 target_include_directories(units PUBLIC include)

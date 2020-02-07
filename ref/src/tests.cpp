@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 #include "length.h"
+#include "type_list.h"
 #include <limits>
 #include <utility>
 
@@ -259,5 +260,43 @@ namespace {
   // static_assert(quantity_cast<int>(2_km).count() == 2000);  // should not compile
   static_assert(quantity_cast<quantity<metre, int>>(2_km).count() == 2000);
   static_assert(quantity_cast<quantity<kilometre, int>>(2000_m).count() == 2);
+
+  // type_list_push_front
+
+  template<typename... Types>
+  struct type_list;
+
+  static_assert(std::is_same_v<type_list_push_front<type_list<>, int>, type_list<int>>);
+  static_assert(std::is_same_v<type_list_push_front<type_list<>, int, long, double>, type_list<int, long, double>>);
+  static_assert(std::is_same_v<type_list_push_front<type_list<double>, int, long>, type_list<int, long, double>>);
+
+  // type_list_push_back
+
+  static_assert(std::is_same_v<type_list_push_back<type_list<>, int>, type_list<int>>);
+  static_assert(std::is_same_v<type_list_push_back<type_list<>, int, long, double>, type_list<int, long, double>>);
+  static_assert(std::is_same_v<type_list_push_back<type_list<double>, int, long>, type_list<double, int, long>>);
+
+  // type_list_split
+
+  static_assert(std::is_same_v<type_list_split<type_list<int>, 0>::first_list, type_list<>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int>, 0>::second_list, type_list<int>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int>, 1>::first_list, type_list<int>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int>, 1>::second_list, type_list<>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 0>::first_list, type_list<>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 0>::second_list, type_list<int, long>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 1>::first_list, type_list<int>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 1>::second_list, type_list<long>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 2>::first_list, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int, long>, 2>::second_list, type_list<>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 1>::first_list, type_list<int>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 1>::second_list, type_list<long, double>>);
+
+  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::first_list, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::second_list, type_list<double>>);
 
 }  // namespace
