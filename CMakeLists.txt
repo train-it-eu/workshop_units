@@ -62,6 +62,7 @@ add_library(units
     include/time.h
     include/type_list.h
     include/unit.h
+    include/velocity.h
 )
 target_include_directories(units PUBLIC include)
 target_compile_features(units PUBLIC cxx_std_17)

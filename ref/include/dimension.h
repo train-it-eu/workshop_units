@@ -127,4 +127,40 @@ namespace units {
   template<typename D>
   using dim_invert = typename detail::dim_invert_impl<D>::type;
 
+  // merge_dimension
+  template<typename D1, typename D2>
+  using merge_dimension = typename detail::dim_consolidate<type_list_merge_sorted<D1, D2, exp_less>>::type;
+
+  // dimension_multiply
+  namespace detail {
+
+    template<typename D1, typename D2>
+    struct dimension_multiply_impl;
+
+    template<typename... E1, typename... E2>
+    struct dimension_multiply_impl<dimension<E1...>, dimension<E2...>> {
+      using type = merge_dimension<dimension<E1...>, dimension<E2...>>;
+    };
+
+  }
+
+  template<typename D1, typename D2>
+  using dimension_multiply = typename detail::dimension_multiply_impl<D1, D2>::type;
+
+  // dimension_divide
+  namespace detail {
+
+    template<typename D1, typename D2>
+    struct dimension_divide_impl;
+
+    template<typename... E1, typename... E2>
+    struct dimension_divide_impl<dimension<E1...>, dimension<E2...>>
+        : dimension_multiply_impl<dimension<E1...>, dimension<exp_invert<E2>...>> {
+    };
+
+  }
+
+  template<typename D1, typename D2>
+  using dimension_divide = typename detail::dimension_divide_impl<D1, D2>::type;
+
 }  // namespace units

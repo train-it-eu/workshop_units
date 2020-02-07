@@ -41,30 +41,33 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-template<int Id, int Value>
-using e = exp<dim_id<Id>, Value>;
-
-static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, 1>>>,
-                            dimension<e<0, 1>, e<1, 2>, e<2, 1>>>);
-static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, -1>>>,
-                            dimension<e<0, 1>, e<2, 1>>>);
-
-static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<1, 1>>>,
-                            dimension<e<0, 1>, e<1, -1>>>);
-static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<0, 1>>>,
-                            dimension<>>);
+static_assert(10_m / 5_s == 2_mps);
+static_assert(1_km / 1_s == 1000_mps);
+static_assert(2_kmph * 2_h == 4_km);
+static_assert(10_Hz * 10_s == 100);
+static_assert(2_km / 2_kmph == 1_h);
 ```
 
-1. Add `dimension_multiply` and `dimension_divide` to `dimension.h`
+1. Add definitions to `velocity.h` header (at least `mps` and `kmph`).
 
-    ```cpp
-    template<typename D1, typename D2>
-    using dimension_multiply = /* ... */;
-    ```
+2. Add the following operator overloads to `quantity` interface
+    - `rep operator*(quantity, quantity)`
+    - `quantity operator*(quantity, quantity)`
+    - `quantity operator/(quantity, quantity)`
+   for different dimensions
 
-    ```cpp
-    template<typename D1, typename D2>
-    using dimension_divide = /* ... */;
-    ```
+3. `rep operator*(quantity, quantity)` should participate in the overload resolution only if
+    the following are true:
+    - `same_dim<typename Unit::dimension, dim_invert<typename Unit2::dimension>>`
 
-    Assume that `D1` and `D2` are sorted already.
+4. `quantity operator*(quantity, quantity)` should participate in the overload resolution only if
+    the following are true:
+    - `!same_dim<typename Unit::dimension, dim_invert<typename Unit2::dimension>>`
+    - `treat_as_floating_point<decltype(std::declval<Rep>() * std::declval<Rep2>())>` or
+        `std::ratio_multiply<typename Unit::ratio, typename Unit2::ratio>::den == 1`
+
+5. `quantity operator/(quantity, quantity)` should participate in the overload resolution only if
+    the following are true:
+    - `!same_dim<typename Unit::dimension, dim_invert<typename Unit2::dimension>>`
+    - `treat_as_floating_point<decltype(std::declval<Rep>() / std::declval<Rep2>())>` or
+        `std::ratio_divide<typename Unit::ratio, typename Unit2::ratio>::den == 1`

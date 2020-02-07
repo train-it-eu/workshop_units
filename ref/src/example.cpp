@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 Train IT
+// Copyright (c) 2018 Mateusz Pusz
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "dimension.h"
+#include "velocity.h"
+#include "frequency.h"
 
 namespace {
 
   using namespace units;
 
-  template<int Id, int Value>
-  using e = exp<dim_id<Id>, Value>;
-
-  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, 1>>>,
-                              dimension<e<0, 1>, e<1, 2>, e<2, 1>>>);
-  static_assert(std::is_same_v<dimension_multiply<dimension<e<0, 1>, e<1, 1>, e<2, 1>>, dimension<e<1, -1>>>,
-                              dimension<e<0, 1>, e<2, 1>>>);
-
-  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<1, 1>>>,
-                              dimension<e<0, 1>, e<1, -1>>>);
-  static_assert(std::is_same_v<dimension_divide<dimension<e<0, 1>>, dimension<e<0, 1>>>,
-                              dimension<>>);
+  static_assert(10_m / 5_s == 2_mps);
+  static_assert(1_km / 1_s == 1000_mps);
+  static_assert(2_kmph * 2_h == 4_km);
+  static_assert(10_Hz * 10_s == 100);
+  static_assert(2_km / 2_kmph == 1_h);
 
 }  // namespace

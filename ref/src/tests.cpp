@@ -23,6 +23,7 @@
 #include "length.h"
 #include "time.h"
 #include "frequency.h"
+#include "velocity.h"
 #include <limits>
 #include <utility>
 
@@ -94,7 +95,7 @@ namespace {
   static_assert(std::is_same_v<quantity<metre, int>::unit::ratio, std::ratio<1, 1>>);
   static_assert(std::is_same_v<quantity<kilometre, int>::unit::ratio, std::ratio<1000, 1>>);
  
-   // constructors
+  // constructors
 
   static_assert(quantity<metre>().count() == 0);
   static_assert(m.count() == 1);
@@ -414,4 +415,13 @@ namespace {
   static_assert(1 / 1_s == 1_Hz);
   static_assert(1000 / 1_s == 1_kHz);
   
-  }  // namespace
+  // velocity
+  
+  static_assert(10_m / 5_s == 2_mps);
+  static_assert(10 / 5_s * 1_m == 2_mps);
+  static_assert(1_km / 1_s == 1000_mps);
+  static_assert(2_kmph * 2_h == 4_km);
+  static_assert(10_Hz * 10_s == 100);
+  static_assert(2_km / 2_kmph == 1_h);
+
+}  // namespace
