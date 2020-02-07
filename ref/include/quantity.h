@@ -125,6 +125,9 @@ namespace units {
   template<typename D, typename R1, typename R2>
   inline constexpr bool same_dim<unit<D, R1>, unit<D, R2>> = true;
 
+  template<typename... Es>
+  inline constexpr bool same_dim<dimension<Es...>, dimension<Es...>> = true;
+
   // quantity
 
   template<typename Unit, typename Rep = double>
@@ -250,6 +253,28 @@ namespace units {
       return q * v;
     }
 
+    template<typename Unit2, typename Rep2,
+             Requires<same_dim<typename Unit::dimension, dim_invert<typename Unit2::dimension>>> = true>
+    [[nodiscard]] friend constexpr auto operator*(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
+        -> decltype(std::declval<Rep>() * std::declval<Rep2>())
+    {
+      using common_rep = decltype(lhs.count() * rhs.count());
+      using ratio = std::ratio_multiply<typename Unit::ratio, typename Unit2::ratio>;
+      return common_rep(lhs.count()) * common_rep(rhs.count()) * common_rep(ratio::num) / common_rep(ratio::den);
+    }
+
+    template<typename Unit2, typename Rep2,
+             Requires<!same_dim<typename Unit::dimension, dim_invert<typename Unit2::dimension>> &&
+                       (treat_as_floating_point<decltype(std::declval<Rep>() * std::declval<Rep2>())> ||
+                       (std::ratio_multiply<typename Unit::ratio, typename Unit2::ratio>::den == 1))> = true,
+             typename Ret = quantity<units::unit<dimension_multiply<typename Unit::dimension, typename Unit2::dimension>,
+                                                 std::ratio_multiply<typename Unit::ratio, typename Unit2::ratio>>,
+                                     decltype(std::declval<Rep>() * std::declval<Rep2>())>>
+    [[nodiscard]] friend constexpr Ret operator*(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
+    {
+      return Ret(lhs.count() * rhs.count());
+    }
+
     template<typename Rep2,
              Requires<!is_quantity<Rep2>> = true>
     [[nodiscard]] friend constexpr auto operator/(const quantity& q, const Rep2& v)
@@ -275,6 +300,18 @@ namespace units {
     {
       using cq = common_quantity<quantity, quantity<Unit2, Rep2>, decltype(lhs.count() / rhs.count())>;
       return cq(lhs).count() / cq(rhs).count();
+    }
+
+    template<typename Unit2, typename Rep2,
+             Requires<!same_dim<typename Unit::dimension, typename Unit2::dimension> &&
+                      (treat_as_floating_point<decltype(std::declval<Rep>() / std::declval<Rep2>())> ||
+                       (std::ratio_divide<typename Unit::ratio, typename Unit2::ratio>::den == 1))> = true,
+             typename Ret = quantity<units::unit<dimension_divide<typename Unit::dimension, typename Unit2::dimension>,
+                                                 std::ratio_divide<typename Unit::ratio, typename Unit2::ratio>>,
+                                     decltype(std::declval<Rep>() / std::declval<Rep2>())>>
+    [[nodiscard]] friend constexpr Ret operator/(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
+    {
+      return Ret(lhs.count() / rhs.count());
     }
 
     template<typename Rep2, typename T = Rep,
