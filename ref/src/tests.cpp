@@ -299,4 +299,36 @@ namespace {
   static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::first_list, type_list<int, long>>);
   static_assert(std::is_same_v<type_list_split<type_list<int, long, double>, 2>::second_list, type_list<double>>);
 
+  // type_list_split_half
+
+  static_assert(std::is_same_v<type_list_split_half<type_list<int>>::first_list, type_list<int>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int>>::second_list, type_list<>>);
+
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long>>::first_list, type_list<int>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long>>::second_list, type_list<long>>);
+
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double>>::first_list, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double>>::second_list, type_list<double>>);
+
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::first_list, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::second_list, type_list<double, float>>);
+
+  // type_list_merge_sorted
+
+  template<int UniqueValue>
+  using dim_id = std::integral_constant<int, UniqueValue>;
+
+  template<typename D1, typename D2>
+  struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+
+  static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<0>>, type_list<dim_id<1>>, dim_id_less>,
+                               type_list<dim_id<0>, dim_id<1>>>);
+  static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<1>>, type_list<dim_id<0>>, dim_id_less>,
+                               type_list<dim_id<0>, dim_id<1>>>);
+
+  static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<27>, dim_id<38>>, type_list<dim_id<3>, dim_id<43>>, dim_id_less>,
+                               type_list<dim_id<3>, dim_id<27>, dim_id<38>, dim_id<43>>>);
+  static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<9>, dim_id<82>>, type_list<dim_id<10>>, dim_id_less>,
+                               type_list<dim_id<9>, dim_id<10>, dim_id<82>>>);
+
 }  // namespace

@@ -41,59 +41,56 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-template<typename... Types>
-struct type_list;
+static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::first_list, type_list<int, long>>);
+static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::second_list, type_list<double, float>>);
 
-static_assert(std::is_same_v<type_list_push_front<type_list<long>, int>, type_list<int, long>>);
-static_assert(std::is_same_v<type_list_push_back<type_list<int>, long>, type_list<int, long>>);
+template<int UniqueValue>
+using dim_id = std::integral_constant<int, UniqueValue>;
 
-using split = type_list_split<type_list<int, long, double>, 2>;
-static_assert(std::is_same_v<split::first_list, type_list<int, long>>);
-static_assert(std::is_same_v<split::second_list, type_list<double>>);
+template<typename D1, typename D2>
+struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+
+static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<27>, dim_id<38>>, type_list<dim_id<3>, dim_id<43>>, dim_id_less>,
+                             type_list<dim_id<3>, dim_id<27>, dim_id<38>, dim_id<43>>>);
 ```
 
-1. In a new header `type_list.h` based on the below hint implement `type_list_push_front`
-    to insert additional types at the front of existing `type_list`:
+1. Create `type_list_split_half` class template that is a helper wrapper around `type_list_split`
+
+    ```cpp
+    template<typename TypeList>
+    struct type_list_split_half;
+    ```
+
+   - it should split the `type_list` to 2 parts,
+   - in case of odd number of types on the list `first_list` should store more types than the `second_list`.
+
+2. Create `type_list_merge_sorted` class template that will merge 2 provided sorted type lists into
+   one big sorted `type_list`. Sorting predicate should be provided as a `Pred` class template argument.
 
     ```cpp
     namespace detail {
 
-        template<typename List, typename... Types>
-        struct type_list_push_front_impl;
+      template<typename SortedList1, typename SortedList2, template<typename, typename> typename Pred>
+      struct type_list_merge_sorted_impl;
 
-        // partial specialization here ...
+      template<template<typename...> typename List, typename... Lhs, template<typename, typename> typename Pred>
+        struct type_list_merge_sorted_impl<List<Lhs...>, List<>, Pred> {
+        using type = List<Lhs...>;
+      };
+
+      template<template<typename...> typename List, typename... Rhs, template<typename, typename> typename Pred>
+      struct type_list_merge_sorted_impl<List<>, List<Rhs...>, Pred> {
+        using type = List<Rhs...>;
+      };
+
+      template<template<typename...> typename List, typename Lhs1, typename... LhsRest, typename Rhs1, typename... RhsRest,
+               template<typename, typename> typename Pred>
+      struct type_list_merge_sorted_impl<List<Lhs1, LhsRest...>, List<Rhs1, RhsRest...>, Pred> {
+        // ...
+      };
 
     }
 
-    template<TypeList List, typename... Types>
-    using type_list_push_front = typename detail::type_list_push_front_impl<List, Types...>::type;
+    template<TypeList SortedList1, TypeList SortedList2, template<typename, typename> typename Pred>
+    using type_list_merge_sorted = typename detail::type_list_merge_sorted_impl<SortedList1, SortedList2, Pred>::type;
     ```
-
-2. Add `type_list_push_back`
-3. Define `type_list_split` primary class template and its partial specialization that will provide
-    `first_list` and `second_list` member types:
-
-    ```cpp
-    template<typename TypeList, std::size_t N>
-    struct type_list_split;
-    ```
-
-   - `first_list` should contain all the types from a `TypeList` with index less than `N`
-   - `second_list` should provide the types from a `TypeList` with index equal or greater than `N`
-   - Hint: partial specialization may use the following helper class template:
-
-        ```cpp
-        template<template<typename...> typename List, std::size_t Idx, std::size_t N, typename... Types>
-        struct split_impl;
-
-        template<template<typename...> typename List, std::size_t Idx, std::size_t N>
-        struct split_impl<List, Idx, N> {
-          using first_list = List<>;
-          using second_list = List<>;
-        };
-
-        template<template<typename...> typename List, std::size_t Idx, std::size_t N, typename T, typename... Rest>
-        struct split_impl<List, Idx, N, T, Rest...> : split_impl<List, Idx + 1, N, Rest...> {
-          // ...
-        };
-        ```

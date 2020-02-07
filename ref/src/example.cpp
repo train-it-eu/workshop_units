@@ -29,11 +29,16 @@ namespace {
   template<typename... Types>
   struct type_list;
 
-  static_assert(std::is_same_v<type_list_push_front<type_list<long>, int>, type_list<int, long>>);
-  static_assert(std::is_same_v<type_list_push_back<type_list<int>, long>, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::first_list, type_list<int, long>>);
+  static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::second_list, type_list<double, float>>);
 
-  using split = type_list_split<type_list<int, long, double>, 2>;
-  static_assert(std::is_same_v<split::first_list, type_list<int, long>>);
-  static_assert(std::is_same_v<split::second_list, type_list<double>>);
+  template<int UniqueValue>
+  using dim_id = std::integral_constant<int, UniqueValue>;
+
+  template<typename D1, typename D2>
+  struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+
+  static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<27>, dim_id<38>>, type_list<dim_id<3>, dim_id<43>>, dim_id_less>,
+                               type_list<dim_id<3>, dim_id<27>, dim_id<38>, dim_id<43>>>);
 
 }  // namespace
