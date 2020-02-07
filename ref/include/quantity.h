@@ -32,6 +32,20 @@ using Requires = std::enable_if_t<B, bool>;
 
 namespace units {
 
+  // treat_as_floating_point
+
+  template<class Rep>
+  inline constexpr bool treat_as_floating_point = std::is_floating_point_v<Rep>;
+
+  // quantity_values
+
+  template<typename Rep>
+  struct quantity_values {
+    static constexpr Rep zero() { return Rep(0); }
+    static constexpr Rep max() { return std::numeric_limits<Rep>::max(); }
+    static constexpr Rep min() { return std::numeric_limits<Rep>::lowest(); }
+  };
+
   // is_quantity
 
   template<typename Rep>
@@ -57,21 +71,21 @@ namespace units {
     template<typename Rep2,
              Requires<!is_quantity<Rep2> &&
                       std::is_convertible_v<Rep2, rep> &&
-                      (std::is_floating_point_v<rep> || !std::is_floating_point_v<Rep2>)> = true>
+                      (treat_as_floating_point<rep> || !treat_as_floating_point<Rep2>)> = true>
     constexpr explicit quantity(const Rep2& v): value_(static_cast<rep>(v)) {}
 
     template<typename Rep2,
              Requires<std::is_convertible_v<Rep2, rep> &&
-                      (std::is_floating_point_v<rep> || !std::is_floating_point_v<Rep2>)> = true>
+                      (treat_as_floating_point<rep> || !treat_as_floating_point<Rep2>)> = true>
     constexpr quantity(const quantity<Rep2>& q) : value_{static_cast<rep>(q.count())} {}
 
     constexpr quantity& operator=(const quantity& other) = default;
 
     [[nodiscard]] constexpr Rep count() const noexcept { return value_; }
 
-    [[nodiscard]] static constexpr quantity zero() { return quantity(0); }
-    [[nodiscard]] static constexpr quantity min() { return quantity(std::numeric_limits<Rep>::lowest()); }
-    [[nodiscard]] static constexpr quantity max() { return quantity(std::numeric_limits<Rep>::max()); }
+    [[nodiscard]] static constexpr quantity zero() { return quantity(quantity_values<Rep>::zero()); }
+    [[nodiscard]] static constexpr quantity min() { return quantity(quantity_values<Rep>::min()); }
+    [[nodiscard]] static constexpr quantity max() { return quantity(quantity_values<Rep>::max()); }
 
     [[nodiscard]] constexpr quantity operator+() const { return *this; }
     [[nodiscard]] constexpr quantity operator-() const { return quantity(-count()); }
@@ -113,14 +127,14 @@ namespace units {
       return *this;
     }
     template<typename T = Rep,
-             Requires<!std::is_floating_point_v<T>> = true>
+             Requires<!treat_as_floating_point<T>> = true>
     constexpr quantity& operator%=(const quantity& q)
     {
       value_ %= q.count();
       return *this;
     }
     template<typename T = Rep,
-             Requires<!std::is_floating_point_v<T>> = true>
+             Requires<!treat_as_floating_point<T>> = true>
     constexpr quantity& operator%=(const Rep& v)
     {
       value_ %= v;
@@ -177,16 +191,16 @@ namespace units {
 
     template<typename Rep2, typename T = Rep,
              Requires<!is_quantity<Rep2> &&
-                      !std::is_floating_point_v<T> &&
-                      !std::is_floating_point_v<Rep2>> = true>
+                      !treat_as_floating_point<T> &&
+                      !treat_as_floating_point<Rep2>> = true>
     [[nodiscard]] friend constexpr quantity operator%(const quantity& q, const Rep2& v)
     {
       return quantity(q.count() % v);
     }
 
     template<typename Rep2, typename T = Rep,
-             Requires<!std::is_floating_point_v<T> &&
-                      !std::is_floating_point_v<Rep2>> = true>
+             Requires<!treat_as_floating_point<T> &&
+                      !treat_as_floating_point<Rep2>> = true>
     [[nodiscard]] friend constexpr quantity operator%(const quantity& lhs, const quantity<Rep2>& rhs)
     {
       return quantity(lhs.count() % rhs.count());

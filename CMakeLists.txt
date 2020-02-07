@@ -53,6 +53,8 @@ add_library(units
     
     src/tests.cpp
     
-    include/quantity.h)
+    include/unit.h
+    include/quantity.h
+)
 target_include_directories(units PUBLIC include)
 target_compile_features(units PUBLIC cxx_std_17)

@@ -59,75 +59,89 @@ namespace {
 
   using namespace units;
 
+  using metre = unit<std::ratio<1>>;
+  using kilometre = unit<std::ratio<1000>>;
+
+  template<typename Rep = double>
+  using length = quantity<Rep>;
+
+  constexpr quantity<metre, int> m{1};
+  constexpr quantity<metre, int> km{1000};
+
   // class invariants
 
-//  constexpr quantity<quantity<int>> error(quantity<int>(0));  // should trigger a static_assert
+//  constexpr quantity<quantity<metre, int>> error(quantity<metre, int>(0));  // should trigger a static_assert
+//  constexpr quantity<int, float> error(0);  // should trigger a static_assert
+//  constexpr quantity<int, std::ratio<-1, 1>> error(0);  // should trigger a static_assert
+//  constexpr quantity<int, std::ratio<1, -1>> error(0);  // should trigger a static_assert
 
   // member types
 
-  static_assert(std::is_same_v<quantity<int>::rep, int>);
-  static_assert(std::is_same_v<quantity<float>::rep, float>);
+  static_assert(std::is_same_v<quantity<metre, int>::rep, int>);
+  static_assert(std::is_same_v<quantity<metre, float>::rep, float>);
+  static_assert(std::is_same_v<quantity<metre, int>::unit::ratio, std::ratio<1, 1>>);
+  static_assert(std::is_same_v<quantity<kilometre, int>::unit::ratio, std::ratio<1000, 1>>);
  
    // constructors
 
-  static_assert(quantity<>().count() == 0);
-  static_assert(quantity<int>(1).count() == 1);
-  static_assert(quantity<int>(1000).count() == 1000);
-  static_assert(quantity<>(quantity<int>(1000)).count() == quantity<int>(1000).count());
+  static_assert(quantity<metre>().count() == 0);
+  static_assert(m.count() == 1);
+  static_assert(km.count() == 1000);
+  static_assert(quantity<metre>(km).count() == km.count());
 
-  static_assert(quantity<int>(1).count() == 1);
-  static_assert(quantity<int>(my_value<int>(1)).count() == 1);
-  static_assert(quantity<my_value<int>>(1).count() == 1);
-//  static_assert(quantity<int>(1.0).count() == 1);   // should not compile
-//  static_assert(quantity<int>(my_value<float>(1.0)).count() == 1); // should not compile
-//  static_assert(quantity<my_value<int>>(1.0).count() == 1);   // should not compile
-  static_assert(quantity<float>(1.0).count() == 1.0);
-  static_assert(quantity<float>(my_value<float>(1.0)).count() == 1.0);
-  static_assert(quantity<float>(1).count() == 1.0);
-  static_assert(quantity<float>(my_value<int>(1)).count() == 1.0);
-  static_assert(quantity<float>(3.14f).count() == 3.14f);
-  static_assert(quantity<my_value<float>>(1.0).count() == 1.0);
-  static_assert(quantity<my_value<float>>(1).count() == 1.0);
-  static_assert(quantity<my_value<float>>(3.14f).count() == 3.14f);
+  static_assert(quantity<metre, int>(1).count() == 1);
+  static_assert(quantity<metre, int>(my_value<int>(1)).count() == 1);
+  static_assert(quantity<metre, my_value<int>>(1).count() == 1);
+//  static_assert(quantity<metre, int>(1.0).count() == 1);   // should not compile
+//  static_assert(quantity<metre, int>(my_value<float>(1.0)).count() == 1); // should not compile
+//  static_assert(quantity<metre, my_value<int>>(1.0).count() == 1);   // should not compile
+  static_assert(quantity<metre, float>(1.0).count() == 1.0);
+  static_assert(quantity<metre, float>(my_value<float>(1.0)).count() == 1.0);
+  static_assert(quantity<metre, float>(1).count() == 1.0);
+  static_assert(quantity<metre, float>(my_value<int>(1)).count() == 1.0);
+  static_assert(quantity<metre, float>(3.14f).count() == 3.14f);
+  static_assert(quantity<metre, my_value<float>>(1.0).count() == 1.0);
+  static_assert(quantity<metre, my_value<float>>(1).count() == 1.0);
+  static_assert(quantity<metre, my_value<float>>(3.14f).count() == 3.14f);
 
-  static_assert(quantity<int>(quantity<int>(1000)).count() == 1000);
-//  static_assert(quantity<int>(quantity<float>(1000.0)).count() == 1000);   // should not compile
-//  static_assert(quantity<int>(quantity<my_value<float>>(1000.0)).count() == 1000);   // should not compile
-//  static_assert(quantity<my_value<int>>(quantity<float>(1000.0)).count() == 1000);   // should not compile
-  static_assert(quantity<float>(quantity<float>(1000.0)).count() == 1000.0);
-  static_assert(quantity<float>(quantity<my_value<float>>(1000.0)).count() == 1000.0);
-  static_assert(quantity<my_value<float>>(quantity<float>(1000.0)).count() == 1000.0);
-  static_assert(quantity<float>(quantity<int>(1000)).count() == 1000.0);
-  static_assert(quantity<my_value<float>>(quantity<int>(1000)).count() == 1000.0);
+  static_assert(quantity<metre, int>(km).count() == 1000);
+//  static_assert(quantity<metre, int>(quantity<metre, float>(1000.0)).count() == 1000);   // should not compile
+//  static_assert(quantity<metre, int>(quantity<metre, my_value<float>>(1000.0)).count() == 1000);   // should not compile
+//  static_assert(quantity<metre, my_value<int>>(quantity<metre, float>(1000.0)).count() == 1000);   // should not compile
+  static_assert(quantity<metre, float>(quantity<metre, float>(1000.0)).count() == 1000.0);
+  static_assert(quantity<metre, float>(quantity<metre, my_value<float>>(1000.0)).count() == 1000.0);
+  static_assert(quantity<metre, my_value<float>>(quantity<metre, float>(1000.0)).count() == 1000.0);
+  static_assert(quantity<metre, float>(km).count() == 1000.0);
+  static_assert(quantity<metre, my_value<float>>(km).count() == 1000.0);
 
   // assignment operator
 
   auto test_assign = [](auto l1, auto l2) {
     return l1 = l2;
   };
-  static_assert(test_assign(quantity<>(2), quantity<>(1)).count() == 1);
+  static_assert(test_assign(quantity<metre>(2), quantity<metre>(1)).count() == 1);
 
   // static member functions
 
-  static_assert(quantity<>::zero().count() == 0);
-  static_assert(quantity<>::min().count() == std::numeric_limits<double>::lowest());
-  static_assert(quantity<>::max().count() == std::numeric_limits<double>::max());
-  static_assert(quantity<int>::zero().count() == 0);
-  static_assert(quantity<int>::min().count() == std::numeric_limits<int>::lowest());
-  static_assert(quantity<int>::max().count() == std::numeric_limits<int>::max());
-  static_assert(quantity<my_value<int>>::zero().count() == 0);
-  static_assert(quantity<my_value<int>>::min().count() == std::numeric_limits<int>::lowest());
-  static_assert(quantity<my_value<int>>::max().count() == std::numeric_limits<int>::max());
-  static_assert(quantity<my_value<float>>::zero().count() == 0.0);
-  static_assert(quantity<my_value<float>>::min().count() == std::numeric_limits<float>::lowest());
-  static_assert(quantity<my_value<float>>::max().count() == std::numeric_limits<float>::max());
+  static_assert(quantity<metre>::zero().count() == 0);
+  static_assert(quantity<metre>::min().count() == std::numeric_limits<double>::lowest());
+  static_assert(quantity<metre>::max().count() == std::numeric_limits<double>::max());
+  static_assert(quantity<metre, int>::zero().count() == 0);
+  static_assert(quantity<metre, int>::min().count() == std::numeric_limits<int>::lowest());
+  static_assert(quantity<metre, int>::max().count() == std::numeric_limits<int>::max());
+  static_assert(quantity<metre, my_value<int>>::zero().count() == 0);
+  static_assert(quantity<metre, my_value<int>>::min().count() == std::numeric_limits<int>::lowest());
+  static_assert(quantity<metre, my_value<int>>::max().count() == std::numeric_limits<int>::max());
+  static_assert(quantity<metre, my_value<float>>::zero().count() == 0.0);
+  static_assert(quantity<metre, my_value<float>>::min().count() == std::numeric_limits<float>::lowest());
+  static_assert(quantity<metre, my_value<float>>::max().count() == std::numeric_limits<float>::max());
 
   // unary member operators
 
-  static_assert((+quantity<int>(1000)).count() == 1000);
-  static_assert((-quantity<int>(1000)).count() == -1000);
-  static_assert((+(-quantity<int>(1000))).count() == -1000);
-  static_assert((-(-quantity<int>(1000))).count() == 1000);
+  static_assert((+km).count() == 1000);
+  static_assert((-km).count() == -1000);
+  static_assert((+(-km)).count() == -1000);
+  static_assert((-(-km)).count() == 1000);
 
   // binary member operators
 
@@ -135,75 +149,75 @@ namespace {
     auto vv = func(v);
     return std::make_pair(v, vv);
   };
-  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return v++; }) == std::make_pair(quantity<int>(1001), quantity<int>(1000)));
-  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return ++v; }) == std::make_pair(quantity<int>(1001), quantity<int>(1001)));
-  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return v--; }) == std::make_pair(quantity<int>(999), quantity<int>(1000)));
-  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return --v; }) == std::make_pair(quantity<int>(999), quantity<int>(999)));
+  static_assert(test_incr(km, [](auto& v) { return v++; }) == std::make_pair(quantity<metre, int>(1001), quantity<metre, int>(1000)));
+  static_assert(test_incr(km, [](auto& v) { return ++v; }) == std::make_pair(quantity<metre, int>(1001), quantity<metre, int>(1001)));
+  static_assert(test_incr(km, [](auto& v) { return v--; }) == std::make_pair(quantity<metre, int>(999), quantity<metre, int>(1000)));
+  static_assert(test_incr(km, [](auto& v) { return --v; }) == std::make_pair(quantity<metre, int>(999), quantity<metre, int>(999)));
 
   // compound assignment
 
-  static_assert((quantity<>(1) += quantity<>(1)).count() == 2);
-  static_assert((quantity<>(2) -= quantity<>(1)).count() == 1);
-  static_assert((quantity<>(1) *= 2).count() == 2);
-  static_assert((quantity<>(2) /= 2).count() == 1);
-  static_assert((quantity<int>(7) %= 2).count() == 1);
-  static_assert((quantity<int>(7) %= quantity<int>(2)).count() == 1);
-//  static_assert((quantity<>(7.) %= 2).count() == 1);                  // should not compile
-//  static_assert((quantity<int>(7) %= 2.).count() == 1);               // should not compile
-//  static_assert((quantity<>(7.) %= quantity<int>(2)).count() == 1);   // should not compile
-//  static_assert((quantity<int>(7) %= quantity<>(2.)).count() == 1);   // should not compile
+  static_assert((quantity<metre>(1) += quantity<metre>(1)).count() == 2);
+  static_assert((quantity<metre>(2) -= quantity<metre>(1)).count() == 1);
+  static_assert((quantity<metre>(1) *= 2).count() == 2);
+  static_assert((quantity<metre>(2) /= 2).count() == 1);
+  static_assert((quantity<metre, int>(7) %= 2).count() == 1);
+  static_assert((quantity<metre, int>(7) %= quantity<metre, int>(2)).count() == 1);
+//  static_assert((quantity<metre>(7.) %= 2).count() == 1);                         // should not compile
+//  static_assert((quantity<metre, int>(7) %= 2.).count() == 1);                    // should not compile
+//  static_assert((quantity<metre>(7.) %= quantity<metre, int>(2)).count() == 1);   // should not compile
+//  static_assert((quantity<metre, int>(7) %= quantity<metre>(2.)).count() == 1);   // should not compile
 
   // non-member arithmetic operators
 
-  static_assert(std::is_same_v<decltype(quantity<int>() + quantity<float>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<float>() + quantity<int>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<float>() - quantity<int>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<int>() - quantity<float>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<int>() * 1.0f), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<float>() * 1), quantity<float>>);
-  static_assert(std::is_same_v<decltype(1.0f * quantity<int>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(1 * quantity<float>()), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<int>() / 1.0f), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<float>() / 1), quantity<float>>);
-  static_assert(std::is_same_v<decltype(quantity<int>() / quantity<float>()), float>);
-  static_assert(std::is_same_v<decltype(quantity<float>() / quantity<int>()), float>);
-  static_assert(std::is_same_v<decltype(quantity<int>() % short(1)), quantity<int>>);
-  static_assert(std::is_same_v<decltype(quantity<int>() % quantity<short>(1)), quantity<int>>);
-  static_assert((quantity<>(1) + quantity<int>(1000)).count() == 1001);
-  static_assert((quantity<int>(1000) - quantity<>(1)).count() == 999);
-  static_assert((quantity<>(2) * 2).count() == 4);
-  static_assert((3 * quantity<>(3)).count() == 9);
-  static_assert((quantity<>(4) / 2).count() == 2);
-  static_assert(quantity<>(4) / quantity<>(2) == 2);
-  static_assert((quantity<int>(7) % 2).count() == 1);
-  static_assert((quantity<int>(7) % quantity<int>(2)).count() == 1);
-//  static_assert((quantity<>(7.) % 2).count() == 1);                 // should not compile
-//  static_assert((quantity<int>(7) % 2.).count() == 1);              // should not compile
-//  static_assert((quantity<>(7.) % quantity<int>(2)).count() == 1);  // should not compile
-//  static_assert((quantity<int>(7) % quantity<>(2.)).count() == 1);  // should not compile
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() + quantity<metre, float>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, float>() + quantity<metre, int>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, float>() - quantity<metre, int>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() - quantity<metre, float>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() * 1.0f), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, float>() * 1), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(1.0f * quantity<metre, int>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(1 * quantity<metre, float>()), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() / 1.0f), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, float>() / 1), quantity<metre, float>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() / quantity<metre, float>()), float>);
+  static_assert(std::is_same_v<decltype(quantity<metre, float>() / quantity<metre, int>()), float>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() % short(1)), quantity<metre, int>>);
+  static_assert(std::is_same_v<decltype(quantity<metre, int>() % quantity<metre, short>(1)), quantity<metre, int>>);
+  static_assert((quantity<metre>(1) + km).count() == 1001);
+  static_assert((km - quantity<metre>(1)).count() == 999);
+  static_assert((quantity<metre>(2) * 2).count() == 4);
+  static_assert((3 * quantity<metre>(3)).count() == 9);
+  static_assert((quantity<metre>(4) / 2).count() == 2);
+  static_assert(quantity<metre>(4) / quantity<metre>(2) == 2);
+  static_assert((quantity<metre, int>(7) % 2).count() == 1);
+  static_assert((quantity<metre, int>(7) % quantity<metre, int>(2)).count() == 1);
+//  static_assert((quantity<metre>(7.) % 2).count() == 1);                        // should not compile
+//  static_assert((quantity<metre, int>(7) % 2.).count() == 1);                   // should not compile
+//  static_assert((quantity<metre>(7.) % quantity<metre, int>(2)).count() == 1);  // should not compile
+//  static_assert((quantity<metre, int>(7) % quantity<metre>(2.)).count() == 1);  // should not compile
 
   // comparators
 
-  static_assert(quantity<>(2) + quantity<>(1) == quantity<>(3));
-  static_assert(!(quantity<>(2) + quantity<>(2) == quantity<>(3)));
-  static_assert(quantity<>(2) + quantity<>(2) != quantity<>(3));
-  static_assert(!(quantity<>(2) + quantity<>(2) != quantity<>(4)));
-  static_assert(quantity<>(2) > quantity<>(1));
-  static_assert(!(quantity<>(1) > quantity<>(1)));
-  static_assert(quantity<>(1) < quantity<>(2));
-  static_assert(!(quantity<>(2) < quantity<>(2)));
-  static_assert(quantity<>(2) >= quantity<>(1));
-  static_assert(quantity<>(2) >= quantity<>(2));
-  static_assert(!(quantity<>(2) >= quantity<>(3)));
-  static_assert(quantity<>(1) <= quantity<>(2));
-  static_assert(quantity<>(2) <= quantity<>(2));
-  static_assert(!(quantity<>(3) <= quantity<>(2)));
+  static_assert(quantity<metre>(2) + quantity<metre>(1) == quantity<metre>(3));
+  static_assert(!(quantity<metre>(2) + quantity<metre>(2) == quantity<metre>(3)));
+  static_assert(quantity<metre>(2) + quantity<metre>(2) != quantity<metre>(3));
+  static_assert(!(quantity<metre>(2) + quantity<metre>(2) != quantity<metre>(4)));
+  static_assert(quantity<metre>(2) > quantity<metre>(1));
+  static_assert(!(quantity<metre>(1) > quantity<metre>(1)));
+  static_assert(quantity<metre>(1) < quantity<metre>(2));
+  static_assert(!(quantity<metre>(2) < quantity<metre>(2)));
+  static_assert(quantity<metre>(2) >= quantity<metre>(1));
+  static_assert(quantity<metre>(2) >= quantity<metre>(2));
+  static_assert(!(quantity<metre>(2) >= quantity<metre>(3)));
+  static_assert(quantity<metre>(1) <= quantity<metre>(2));
+  static_assert(quantity<metre>(2) <= quantity<metre>(2));
+  static_assert(!(quantity<metre>(3) <= quantity<metre>(2)));
 
-  static_assert(quantity<int>(3) == quantity<float>(3.0));
-  static_assert(quantity<int>(3) != quantity<float>(3.14));
-  static_assert(quantity<int>(2) > quantity<float>(1.0));
-  static_assert(quantity<float>(1.0) < quantity<int>(2));
-  static_assert(quantity<float>(2.0) >= quantity<int>(1));
-  static_assert(quantity<int>(1) <= quantity<float>(2.0));
+  static_assert(quantity<metre, int>(3) == quantity<metre, float>(3.0));
+  static_assert(quantity<metre, int>(3) != quantity<metre, float>(3.14));
+  static_assert(quantity<metre, int>(2) > quantity<metre, float>(1.0));
+  static_assert(quantity<metre, float>(1.0) < quantity<metre, int>(2));
+  static_assert(quantity<metre, float>(2.0) >= quantity<metre, int>(1));
+  static_assert(quantity<metre, int>(1) <= quantity<metre, float>(2.0));
 
 }  // namespace

@@ -41,48 +41,35 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-template<typename T>
-class my_value;
+using metre = unit<std::ratio<1>>;
+using kilometre = unit<std::ratio<1000>>;
 
-namespace units {
-
-  template<typename T>
-  inline constexpr bool treat_as_floating_point<my_value<T>> = std::is_floating_point_v<T>;
-
-  template<typename T>
-  struct quantity_values<my_value<T>> {
-    static constexpr my_value<T> zero() { return my_value<T>(0); }
-    static constexpr my_value<T> max() { return std::numeric_limits<T>::max(); }
-    static constexpr my_value<T> min() { return std::numeric_limits<T>::lowest(); }
-  };
-
-}  // namespace units
-
-constexpr quantity<my_value<int>> d1(1), d2(2);
-constexpr quantity<int> d3 = d1 + d2;
-static_assert(d3.count() == 3);
-
-constexpr quantity<float> d4(3.0);
-constexpr quantity<my_value<float>> d5 = d4 + d3;
-static_assert(d5.count() == 6.0);
+constexpr quantity<metre, int> d1(1);
+constexpr quantity<kilometre, int> d2(1);
+//  constexpr quantity<metre, int> d3 = d1 + d2; // should not compile (for now)
+constexpr quantity<metre, int> d3(d1.count() + d2.count() * 1000);
 ```
 
-1. Add the following customization points to `quantity`
-    - `units::treat_as_floating_point<T>` that allows the user to specify that his own type provided as
-      `Rep` behaves like a floating point type
+1. In a new header `unit.h` add the unit definition:
 
-        ```cpp
-        template<typename T>
-        inline constexpr bool treat_as_floating_point;
-        ```
+    ```cpp
+    template<typename Ratio>
+    struct unit;
+    ```
 
-    - `units::quantity_values<T>` that allows providing custom `zero`, `min`, and `max` for `Rep`
+    - `unit` class should provide `ratio` member type in its interface
+    - make sure that `Ratio` argument of `unit` class template is a specialization of `std::ratio`
+    - make sure that value provided to `Ratio` is positive (non-negative)
 
-        ```cpp
-        template<typename Rep>
-        struct quantity_values {
-          static constexpr Rep zero();
-          static constexpr Rep max();
-          static constexpr Rep min();
-        };
-        ```
+2. Convert `quantity` to the following class template
+
+    ```cpp
+    template<typename Unit, typename Rep = double>
+    class quantity;
+    ```
+
+    - update the `quantity` class to provide `unit` member type in its interface
+    - make sure that `Unit` argument of `quantity` class template is a specialization of `units::unit`
+
+3. All binary functions using `quantity` for both arguments should use the same `Unit` for both of them.
+4. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
