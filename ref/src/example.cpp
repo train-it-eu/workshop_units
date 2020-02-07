@@ -20,18 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "quantity.h"
+#include "length.h"
 #include <utility>
 
 namespace {
 
   using namespace units;
+  using namespace units::literals;
 
-  using millimetre = unit<std::milli>;
-  using metre = unit<std::ratio<1>>;
-  using kilometre = unit<std::kilo>;
-
-  static_assert(quantity<metre, int>(quantity<kilometre, int>(1)) == quantity<metre, int>(1000));
-  static_assert(quantity<metre, int>(1) + quantity<kilometre, int>(1) == quantity<millimetre, int>(1'001'000));
+  static_assert(1_km == 1'000_m);
+  static_assert(1_m + 1_km == 1'001'000_mm);
+  static_assert(1.3_km == 1'300_m);
 
 }  // namespace

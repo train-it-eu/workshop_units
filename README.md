@@ -41,37 +41,12 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-using millimetre = unit<std::milli>;
-using metre = unit<std::ratio<1>>;
-using kilometre = unit<std::kilo>;
-
-static_assert(quantity<metre, int>(quantity<kilometre, int>(1)) == quantity<metre, int>(1000));
-static_assert(quantity<metre, int>(1) + quantity<kilometre, int>(1) == quantity<millimetre, int>(1'001'000));
+static_assert(1_km == 1'000_m);
+static_assert(1_m + 1_km == 1'001'000_mm);
+static_assert(1.3_km == 1'300_m);
 ```
 
-1. Modify converting constructor to take `quantity` of any `Ratio2` as a its argument. Use
-   `quantity_cast` to convert value of source `quantity` to the destination one.
-2. If `Rep2` template argument of a converting constructor is not a floating-point type than the
-   converting constructor should not participate in the overload resolution unless `Ratio2` is a
-   multiplicity of `ratio`.
-3. Convert all binary functions to take `quantity` with any `Ratio2` and to return
-   `common_quantity`:
-
-    ```cpp
-    template<typename Q1, typename Q2, typename Rep = std::common_type_t<typename Q1::rep, typename Q2::rep>>
-    using common_quantity = quantity<unit<common_ratio<typename Q1::unit::ratio, typename Q2::unit::ratio>>, Rep>;
-    ```
-
-    Hint:
-
-    ```cpp
-    template<typename Unit2, typename Rep2>
-    [[nodiscard]] friend constexpr auto operator+(const quantity& lhs, const quantity<Unit2, Rep2>& rhs)
-        -> common_quantity<quantity, quantity<Unit2, Rep2>, decltype(lhs.count() + rhs.count())>
-    {
-      using ret = common_quantity<quantity, quantity<Unit2, Rep2>, decltype(lhs.count() + rhs.count())>;
-      return ret(ret(lhs).count() + ret(rhs).count());
-    }
-    ```
-
-4. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
+1. In a new header `length.h` define units for metre, millimetre, and kilometre.
+2. Create a new inline namespace `units::literals` and define user defined literals there
+   for above units for both integral and floating point arguments.
+3. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
