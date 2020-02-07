@@ -54,6 +54,7 @@ add_library(units
     src/tests.cpp
     
     include/common_ratio.h
+    include/dimension.h
     include/length.h
     include/quantity.h
     include/type_list.h

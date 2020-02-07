@@ -40,41 +40,38 @@ static_assert(2_km / 2_kmph == 1_h);
 
 ## Task
 
-We are about to implement [merge sort](https://en.wikipedia.org/wiki/Merge_sort) algorithm on types
-
-![img](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Merge_sort_algorithm_diagram.svg/300px-Merge_sort_algorithm_diagram.svg.png)
-
 ```cpp
-template<int UniqueValue>
-using dim_id = std::integral_constant<int, UniqueValue>;
-
-template<typename D1, typename D2>
-struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+template<int Id, int Value>
+using e = exp<dim_id<Id>, Value>;
 
 template<typename TypeList>
-using dim_sort = type_list_sort<TypeList, dim_id_less>;
+using exp_sort = type_list_sort<TypeList, exp_less>;
 
-static_assert(std::is_same_v<dim_sort<type_list<dim_id<38>, dim_id<27>, dim_id<43>, dim_id<3>, dim_id<9>, dim_id<82>, dim_id<10>>>,
-                             type_list<dim_id<3>, dim_id<9>, dim_id<10>, dim_id<27>, dim_id<38>, dim_id<43>, dim_id<82>>>);
+static_assert(std::is_same_v<exp_sort<dimension<e<1, 1>, e<0, -1>>>, dimension<e<0, -1>, e<1, 1>>>);
+
+static_assert(std::is_same_v<exp_invert<e<0, 1>>, e<0, -1>>);
 ```
 
-1. Create `type_list_sort` that will implement merge sort algorithm on `TypeList` using the
-    predicate `Pred` and the tools we've implemented already:
+1. In a new header file `dimension.h` add `dim_id<int>` as an alias to `std::integral_constant`
+   containing that value.
+
+2. Add definition of `exp`
 
     ```cpp
-    namespace detail {
+    template<typename BaseDimension, int Value>
+    struct exp {
+      using dimension = BaseDimension;
+      static constexpr int value = Value;
+    };
+    ```
 
-        template<typename List, template<typename, typename> typename Pred>
-        struct type_list_sort_impl;
+3. Add `exp_less` predicate that will compare values stored in `exp`.
 
-        template<template<typename...> typename List, template<typename, typename> typename Pred>
-        struct type_list_sort_impl<List<>, Pred> {
-        using type = List<>;
-        };
+4. Add `exp_invert` and `exp_invert_t` helper that will invert the exponent value stored in `exp`.
 
-        // ...
-    }
+5. Add `dimension`:
 
-    template<typename List, template<typename, typename> typename Pred>
-    using type_list_sort = typename detail::type_list_sort_impl<List, Pred>::type;
+    ```cpp
+    template<typename... Exponents>
+    struct dimension;
     ```

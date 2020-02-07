@@ -136,4 +136,35 @@ namespace units {
   template<typename SortedList1, typename SortedList2, template<typename, typename> typename Pred>
   using type_list_merge_sorted = typename detail::type_list_merge_sorted_impl<SortedList1, SortedList2, Pred>::type;
 
+  // sort
+
+  namespace detail {
+
+    template<typename List, template<typename, typename> typename Pred>
+    struct type_list_sort_impl;
+
+    template<template<typename...> typename List, template<typename, typename> typename Pred>
+    struct type_list_sort_impl<List<>, Pred> {
+      using type = List<>;
+    };
+
+    template<template<typename...> typename List, typename T, template<typename, typename> typename Pred>
+    struct type_list_sort_impl<List<T>, Pred> {
+      using type = List<T>;
+    };
+
+    template<template<typename...> typename List, typename... Types, template<typename, typename> typename Pred>
+    struct type_list_sort_impl<List<Types...>, Pred> {
+      using types = List<Types...>;
+      using split = type_list_split_half<List<Types...>>;
+      using sorted_left = typename type_list_sort_impl<typename split::first_list, Pred>::type;
+      using sorted_right = typename type_list_sort_impl<typename split::second_list, Pred>::type;
+      using type = typename type_list_merge_sorted_impl<sorted_left, sorted_right, Pred>::type;
+    };
+
+  }
+
+  template<typename List, template<typename, typename> typename Pred>
+  using type_list_sort = typename detail::type_list_sort_impl<List, Pred>::type;
+
 }  // namespace units

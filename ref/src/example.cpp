@@ -20,25 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "type_list.h"
+#include "dimension.h"
 
 namespace {
 
   using namespace units;
 
-  template<typename... Types>
-  struct type_list;
-
-  template<int UniqueValue>
-  using dim_id = std::integral_constant<int, UniqueValue>;
-
-  template<typename D1, typename D2>
-  struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+  template<int Id, int Value>
+  using e = exp<dim_id<Id>, Value>;
 
   template<typename TypeList>
-  using dim_sort = type_list_sort<TypeList, dim_id_less>;
+  using exp_sort = type_list_sort<TypeList, exp_less>;
 
-  static_assert(std::is_same_v<dim_sort<type_list<dim_id<38>, dim_id<27>, dim_id<43>, dim_id<3>, dim_id<9>, dim_id<82>, dim_id<10>>>,
-                               type_list<dim_id<3>, dim_id<9>, dim_id<10>, dim_id<27>, dim_id<38>, dim_id<43>, dim_id<82>>>);
+  static_assert(std::is_same_v<exp_sort<dimension<e<1, 1>, e<0, -1>>>, dimension<e<0, -1>, e<1, 1>>>);
+
+  static_assert(std::is_same_v<exp_invert<e<0, 1>>, e<0, -1>>);
 
 }  // namespace
