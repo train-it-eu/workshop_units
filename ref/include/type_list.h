@@ -97,4 +97,43 @@ namespace units {
     using second_list = typename split::second_list;
   };
 
+  // split_half
+
+  template<typename List>
+  struct type_list_split_half;
+
+  template<template<typename...> typename List, typename... Types>
+  struct type_list_split_half<List<Types...>> : type_list_split<List<Types...>, (sizeof...(Types) + 1) / 2> {};
+
+  // merge_sorted
+
+  namespace detail {
+
+    template<typename SortedList1, typename SortedList2, template<typename, typename> typename Pred>
+    struct type_list_merge_sorted_impl;
+
+    template<template<typename...> typename List, typename... Lhs, template<typename, typename> typename Pred>
+    struct type_list_merge_sorted_impl<List<Lhs...>, List<>, Pred> {
+      using type = List<Lhs...>;
+    };
+
+    template<template<typename...> typename List, typename... Rhs, template<typename, typename> typename Pred>
+    struct type_list_merge_sorted_impl<List<>, List<Rhs...>, Pred> {
+      using type = List<Rhs...>;
+    };
+
+    template<template<typename...> typename List, typename Lhs1, typename... LhsRest, typename Rhs1, typename... RhsRest,
+             template<typename, typename> typename Pred>
+    struct type_list_merge_sorted_impl<List<Lhs1, LhsRest...>, List<Rhs1, RhsRest...>, Pred> {
+      using type = std::conditional_t<
+          Pred<Lhs1, Rhs1>::value,
+          typename type_list_push_front_impl<typename type_list_merge_sorted_impl<List<LhsRest...>, List<Rhs1, RhsRest...>, Pred>::type, Lhs1>::type,
+          typename type_list_push_front_impl<typename type_list_merge_sorted_impl<List<Lhs1, LhsRest...>, List<RhsRest...>, Pred>::type, Rhs1>::type>;
+    };
+
+  }
+
+  template<typename SortedList1, typename SortedList2, template<typename, typename> typename Pred>
+  using type_list_merge_sorted = typename detail::type_list_merge_sorted_impl<SortedList1, SortedList2, Pred>::type;
+
 }  // namespace units

@@ -331,4 +331,17 @@ namespace {
   static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<9>, dim_id<82>>, type_list<dim_id<10>>, dim_id_less>,
                                type_list<dim_id<9>, dim_id<10>, dim_id<82>>>);
 
+  // type_list_sort
+
+  template<typename TypeList>
+  using dim_sort = type_list_sort<TypeList, dim_id_less>;
+
+  static_assert(std::is_same_v<dim_sort<type_list<dim_id<0>>>, type_list<dim_id<0>>>);
+  static_assert(std::is_same_v<dim_sort<type_list<dim_id<0>, dim_id<1>>>,
+                               type_list<dim_id<0>, dim_id<1>>>);
+  static_assert(std::is_same_v<dim_sort<type_list<dim_id<1>, dim_id<0>>>,
+                               type_list<dim_id<0>, dim_id<1>>>);
+  static_assert(std::is_same_v<dim_sort<type_list<dim_id<38>, dim_id<27>, dim_id<43>, dim_id<3>, dim_id<9>, dim_id<82>, dim_id<10>>>,
+                               type_list<dim_id<3>, dim_id<9>, dim_id<10>, dim_id<27>, dim_id<38>, dim_id<43>, dim_id<82>>>);
+
 }  // namespace

@@ -40,57 +40,41 @@ static_assert(2_km / 2_kmph == 1_h);
 
 ## Task
 
-```cpp
-static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::first_list, type_list<int, long>>);
-static_assert(std::is_same_v<type_list_split_half<type_list<int, long, double, float>>::second_list, type_list<double, float>>);
+We are about to implement [merge sort](https://en.wikipedia.org/wiki/Merge_sort) algorithm on types
 
+![img](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Merge_sort_algorithm_diagram.svg/300px-Merge_sort_algorithm_diagram.svg.png)
+
+```cpp
 template<int UniqueValue>
 using dim_id = std::integral_constant<int, UniqueValue>;
 
 template<typename D1, typename D2>
 struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
 
-static_assert(std::is_same_v<type_list_merge_sorted<type_list<dim_id<27>, dim_id<38>>, type_list<dim_id<3>, dim_id<43>>, dim_id_less>,
-                             type_list<dim_id<3>, dim_id<27>, dim_id<38>, dim_id<43>>>);
+template<typename TypeList>
+using dim_sort = type_list_sort<TypeList, dim_id_less>;
+
+static_assert(std::is_same_v<dim_sort<type_list<dim_id<38>, dim_id<27>, dim_id<43>, dim_id<3>, dim_id<9>, dim_id<82>, dim_id<10>>>,
+                             type_list<dim_id<3>, dim_id<9>, dim_id<10>, dim_id<27>, dim_id<38>, dim_id<43>, dim_id<82>>>);
 ```
 
-1. Create `type_list_split_half` class template that is a helper wrapper around `type_list_split`
-
-    ```cpp
-    template<typename TypeList>
-    struct type_list_split_half;
-    ```
-
-   - it should split the `type_list` to 2 parts,
-   - in case of odd number of types on the list `first_list` should store more types than the `second_list`.
-
-2. Create `type_list_merge_sorted` class template that will merge 2 provided sorted type lists into
-   one big sorted `type_list`. Sorting predicate should be provided as a `Pred` class template argument.
+1. Create `type_list_sort` that will implement merge sort algorithm on `TypeList` using the
+    predicate `Pred` and the tools we've implemented already:
 
     ```cpp
     namespace detail {
 
-      template<typename SortedList1, typename SortedList2, template<typename, typename> typename Pred>
-      struct type_list_merge_sorted_impl;
+        template<typename List, template<typename, typename> typename Pred>
+        struct type_list_sort_impl;
 
-      template<template<typename...> typename List, typename... Lhs, template<typename, typename> typename Pred>
-        struct type_list_merge_sorted_impl<List<Lhs...>, List<>, Pred> {
-        using type = List<Lhs...>;
-      };
+        template<template<typename...> typename List, template<typename, typename> typename Pred>
+        struct type_list_sort_impl<List<>, Pred> {
+        using type = List<>;
+        };
 
-      template<template<typename...> typename List, typename... Rhs, template<typename, typename> typename Pred>
-      struct type_list_merge_sorted_impl<List<>, List<Rhs...>, Pred> {
-        using type = List<Rhs...>;
-      };
-
-      template<template<typename...> typename List, typename Lhs1, typename... LhsRest, typename Rhs1, typename... RhsRest,
-               template<typename, typename> typename Pred>
-      struct type_list_merge_sorted_impl<List<Lhs1, LhsRest...>, List<Rhs1, RhsRest...>, Pred> {
         // ...
-      };
-
     }
 
-    template<TypeList SortedList1, TypeList SortedList2, template<typename, typename> typename Pred>
-    using type_list_merge_sorted = typename detail::type_list_merge_sorted_impl<SortedList1, SortedList2, Pred>::type;
+    template<typename List, template<typename, typename> typename Pred>
+    using type_list_sort = typename detail::type_list_sort_impl<List, Pred>::type;
     ```
