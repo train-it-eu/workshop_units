@@ -41,11 +41,34 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-constexpr quantity d1(1), d2(2);
-constexpr quantity d3 = d1 + d2;
+constexpr quantity<int> d1(1), d2(2);
+constexpr quantity<int> d3 = d1 + d2;
 static_assert(d3.count() == 3);
+
+constexpr quantity<> d4(3.0);
+constexpr quantity<> d5 = d4 + d1;
+static_assert(d5.count() == 4.0);
 ```
 
-1. Copy contents of `ref/include/quantity.h` to `include/quantity.h`.
-2. Review `quantity` class declaration and provide implementation for all its functions.
-3. Make all the unit tests and example code pass.
+
+1. Convert `quantity` to the following class template
+
+    ```cpp
+    template<typename Rep = double>
+    class quantity;
+    ```
+
+2. Update the `quantity` class to
+    - provide `rep` member type in its interface
+    - use `Rep` instead of `double` in its interface and implementation.
+3. Make sure that `quantity` type is not used as class template `Rep` argument.
+4. Modify explicit constructor to take `Rep2` and ensure it is not of a quantity
+    type:
+
+    ```cpp
+    template<typename Rep2,
+             Requires<!is_quantity<Rep2>> = true>
+    constexpr explicit quantity(const Rep2& v);
+    ```
+
+5. Ensure that all commented checks in `tests.cpp` produce a compile-time error.

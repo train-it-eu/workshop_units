@@ -26,8 +26,12 @@ namespace {
 
   using namespace units;
 
-  constexpr quantity d1(1), d2(2);
-  constexpr quantity d3 = d1 + d2;
+  constexpr quantity<int> d1(1), d2(2);
+  constexpr quantity<int> d3 = d1 + d2;
   static_assert(d3.count() == 3);
+
+  constexpr quantity<> d4(3.0);
+  constexpr quantity<> d5 = d4 + d1;
+  static_assert(d5.count() == 4.0);
 
 }  // namespace

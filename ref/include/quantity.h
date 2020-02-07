@@ -27,42 +27,79 @@
 namespace units {
 
   class quantity {
-    double value_;
+    double value_{};
 
   public:
-    constexpr quantity();
-    constexpr quantity(const quantity& q);
-    constexpr explicit quantity(const double& v);
+    constexpr quantity() = default;
+    constexpr quantity(const quantity& q) = default;
+    constexpr explicit quantity(const double& v): value_(v) {}
 
-    constexpr quantity& operator=(const quantity& other);
+    constexpr quantity& operator=(const quantity& other) = default;
 
-    [[nodiscard]] constexpr double count() const noexcept;
+    [[nodiscard]] constexpr double count() const noexcept { return value_; }
 
-    [[nodiscard]] static constexpr quantity zero();
-    [[nodiscard]] static constexpr quantity min();
-    [[nodiscard]] static constexpr quantity max();
+    [[nodiscard]] static constexpr quantity zero() { return quantity(0); }
+    [[nodiscard]] static constexpr quantity min() { return quantity(std::numeric_limits<double>::lowest()); }
+    [[nodiscard]] static constexpr quantity max() { return quantity(std::numeric_limits<double>::max()); }
 
-    [[nodiscard]] constexpr quantity operator+() const;
-    [[nodiscard]] constexpr quantity operator-() const;
+    [[nodiscard]] constexpr quantity operator+() const { return *this; }
+    [[nodiscard]] constexpr quantity operator-() const { return quantity(-count()); }
 
-    constexpr quantity& operator+=(const quantity& q);
-    constexpr quantity& operator-=(const quantity& q);
-    constexpr quantity& operator*=(const double& v);
-    constexpr quantity& operator/=(const double& v);
+    constexpr quantity& operator+=(const quantity& q)
+    {
+      value_ += q.count();
+      return *this;
+    }
+    constexpr quantity& operator-=(const quantity& q)
+    {
+      value_ -= q.count();
+      return *this;
+    }
+    constexpr quantity& operator*=(const double& v)
+    {
+      value_ *= v;
+      return *this;
+    }
+    constexpr quantity& operator/=(const double& v)
+    {
+      value_ /= v;
+      return *this;
+    }
 
-    [[nodiscard]] friend constexpr quantity operator+(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr quantity operator-(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr quantity operator*(const quantity& q, const double& v);
-    [[nodiscard]] friend constexpr quantity operator*(const double& v, const quantity& q);
-    [[nodiscard]] friend constexpr quantity operator/(const quantity& q, const double& v);
-    [[nodiscard]] friend constexpr double operator/(const quantity& lhs, const quantity& rhs);
+    [[nodiscard]] friend constexpr quantity operator+(const quantity& lhs, const quantity& rhs)
+    {
+      return quantity(lhs.count() + rhs.count());
+    }
+    [[nodiscard]] friend constexpr quantity operator-(const quantity& lhs, const quantity& rhs)
+    {
+      return quantity(lhs.count() - rhs.count());
+    }
+    [[nodiscard]] friend constexpr quantity operator*(const quantity& q, const double& v)
+    {
+      return quantity(q.count() * v);
+    }
+    [[nodiscard]] friend constexpr quantity operator*(const double& v, const quantity& q) { return q * v; }
+    [[nodiscard]] friend constexpr quantity operator/(const quantity& q, const double& v)
+    {
+      return quantity(q.count() / v);
+    }
+    [[nodiscard]] friend constexpr double operator/(const quantity& lhs, const quantity& rhs)
+    {
+      return lhs.count() / rhs.count();
+    }
 
-    [[nodiscard]] friend constexpr bool operator==(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr bool operator!=(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr bool operator<(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr bool operator<=(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr bool operator>(const quantity& lhs, const quantity& rhs);
-    [[nodiscard]] friend constexpr bool operator>=(const quantity& lhs, const quantity& rhs);
+    [[nodiscard]] friend constexpr bool operator==(const quantity& lhs, const quantity& rhs)
+    {
+      return lhs.count() == rhs.count();
+    }
+    [[nodiscard]] friend constexpr bool operator!=(const quantity& lhs, const quantity& rhs) { return !(lhs == rhs); }
+    [[nodiscard]] friend constexpr bool operator<(const quantity& lhs, const quantity& rhs)
+    {
+      return lhs.count() < rhs.count();
+    }
+    [[nodiscard]] friend constexpr bool operator<=(const quantity& lhs, const quantity& rhs) { return !(rhs < lhs); }
+    [[nodiscard]] friend constexpr bool operator>(const quantity& lhs, const quantity& rhs) { return rhs < lhs; }
+    [[nodiscard]] friend constexpr bool operator>=(const quantity& lhs, const quantity& rhs) { return !(lhs < rhs); }
   };
 
 }  // namespace units
