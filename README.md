@@ -44,32 +44,42 @@ static_assert(2_km / 2_kmph == 1_h);
 using metre = unit<std::ratio<1>>;
 using kilometre = unit<std::ratio<1000>>;
 
-constexpr quantity<metre, int> d1(1);
-constexpr quantity<kilometre, int> d2(1);
-//  constexpr quantity<metre, int> d3 = d1 + d2; // should not compile (for now)
-constexpr quantity<metre, int> d3(d1.count() + d2.count() * 1000);
+static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
+static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
 ```
 
-1. In a new header `unit.h` add the unit definition:
+1. Copy `ref/include/common_ratio.h` to the `include` directory and include in your
+    `quantity.h` header.
+2. Implement `quantity_cast` function template
 
     ```cpp
-    template<typename Ratio>
-    struct unit;
+    template<typename To, typename Unit, typename Rep,
+    [[nodiscard]] constexpr To quantity_cast(const quantity<Unit, Rep>& q);
     ```
 
-    - `unit` class should provide `ratio` member type in its interface
-    - make sure that `Ratio` argument of `unit` class template is a specialization of `std::ratio`
-    - make sure that value provided to `Ratio` is positive (non-negative)
+    - it should multiply the value provided by `q` with `c_ratio` that is a result of division
+    of `Unit::ratio` and `To::unit::ratio`
 
-2. Convert `quantity` to the following class template
+    The purpose of `quantity_cast` is to allow the user to perform lossy conversions, e.g.
 
     ```cpp
-    template<typename Unit, typename Rep = double>
-    class quantity;
+    //  static_assert(quantity<metre, int>(quantity<metre, float>(3.14)).count() == 3);   // should not compile
+    static_assert(quantity<metre, int>(quantity_cast<quantity<metre, int>>(quantity<metre, float>(3.14))).count() == 3);
     ```
 
-    - update the `quantity` class to provide `unit` member type in its interface
-    - make sure that `Unit` argument of `quantity` class template is a specialization of `units::unit`
+3. `quantity_cast` should participate in the overload resolution only if `To` template parameter
+   is of `quantity` type.
+4. Bonus points for making `quantity_cast` perform division and multiplication operations only when
+   needed (the value of operation argument is different than `1`).
 
-3. All binary functions using `quantity` for both arguments should use the same `Unit` for both of them.
-4. Ensure that all commented checks in `tests.cpp` produce a compile-time error.
+    Hint:
+
+    ```cpp
+    template<typename To, typename CRatio, typename CRep, bool NumIsOne = false, bool DenIsOne = false>
+    struct quantity_cast_impl {
+      template<typename Unit, typename Rep>
+      static constexpr To cast(const quantity<Unit, Rep>& q)
+    };
+    ```
+
+5. Ensure that all commented checks in `tests.cpp` produce a compile-time error.

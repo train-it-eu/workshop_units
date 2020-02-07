@@ -105,7 +105,8 @@ namespace {
   static_assert(quantity<metre, my_value<float>>(3.14f).count() == 3.14f);
 
   static_assert(quantity<metre, int>(km).count() == 1000);
-//  static_assert(quantity<metre, int>(quantity<metre, float>(1000.0)).count() == 1000);   // should not compile
+//  static_assert(quantity<metre, int>(quantity<metre, float>(3.14)).count() == 3);   // should not compile
+  static_assert(quantity<metre, int>(quantity_cast<quantity<metre, int>>(quantity<metre, float>(3.14))).count() == 3);
 //  static_assert(quantity<metre, int>(quantity<metre, my_value<float>>(1000.0)).count() == 1000);   // should not compile
 //  static_assert(quantity<metre, my_value<int>>(quantity<metre, float>(1000.0)).count() == 1000);   // should not compile
   static_assert(quantity<metre, float>(quantity<metre, float>(1000.0)).count() == 1000.0);
@@ -219,5 +220,18 @@ namespace {
   static_assert(quantity<metre, float>(1.0) < quantity<metre, int>(2));
   static_assert(quantity<metre, float>(2.0) >= quantity<metre, int>(1));
   static_assert(quantity<metre, int>(1) <= quantity<metre, float>(2.0));
+
+  // common_ratio
+
+  static_assert(std::is_same_v<common_ratio<std::ratio<1>, std::kilo>, std::ratio<1>>);
+  static_assert(std::is_same_v<common_ratio<std::kilo, std::ratio<1>>, std::ratio<1>>);
+  static_assert(std::is_same_v<common_ratio<std::ratio<1>, std::milli>, std::milli>);
+  static_assert(std::is_same_v<common_ratio<std::milli, std::ratio<1>>, std::milli>);
+
+  // quantity_cast
+
+//  static_assert(quantity_cast<int>(quantity<kilometre, int>(2)).count() == 2000);  // should not compile
+  static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
+  static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
 
 }  // namespace

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "unit.h"
 #include <limits>
 #include <type_traits>
 
@@ -48,21 +49,24 @@ namespace units {
 
   // is_quantity
 
-  template<typename Rep>
+  template<typename Unit, typename Rep>
   class quantity;
 
   template<typename T>
   inline constexpr bool is_quantity = false;
 
-  template<typename Rep>
-  inline constexpr bool is_quantity<quantity<Rep>> = true;
+  template<typename Rep, class Ratio>
+  inline constexpr bool is_quantity<quantity<Rep, Ratio>> = true;
 
-  template<typename Rep = double>
+  template<typename Unit, typename Rep = double>
   class quantity {
     Rep value_{};
 
   public:
+    using unit = Unit;
     using rep = Rep;
+
+    static_assert(is_unit<Unit>, "Unit should be an instantiation of units::unit");
     static_assert(!is_quantity<Rep>, "rep cannot be a quantity");
 
     constexpr quantity() = default;
@@ -77,7 +81,7 @@ namespace units {
     template<typename Rep2,
              Requires<std::is_convertible_v<Rep2, rep> &&
                       (treat_as_floating_point<rep> || !treat_as_floating_point<Rep2>)> = true>
-    constexpr quantity(const quantity<Rep2>& q) : value_{static_cast<rep>(q.count())} {}
+    constexpr quantity(const quantity<Unit, Rep2>& q) : value_{static_cast<rep>(q.count())} {}
 
     constexpr quantity& operator=(const quantity& other) = default;
 
@@ -142,27 +146,27 @@ namespace units {
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr auto operator+(const quantity& lhs, const quantity<Rep2>& rhs)
-        -> quantity<decltype(std::declval<Rep>() + std::declval<Rep2>())>
+    [[nodiscard]] friend constexpr auto operator+(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
+        -> quantity<Unit, decltype(std::declval<Rep>() + std::declval<Rep2>())>
     {
-      using ret = quantity<decltype(lhs.count() + rhs.count())>;
+      using ret = quantity<Unit, decltype(lhs.count() + rhs.count())>;
       return ret(lhs.count() + rhs.count());
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr auto operator-(const quantity& lhs, const quantity<Rep2>& rhs)
-        -> quantity<decltype(std::declval<Rep>() - std::declval<Rep2>())>
+    [[nodiscard]] friend constexpr auto operator-(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
+        -> quantity<Unit, decltype(std::declval<Rep>() - std::declval<Rep2>())>
     {
-      using ret = quantity<decltype(lhs.count() - rhs.count())>;
+      using ret = quantity<Unit, decltype(lhs.count() - rhs.count())>;
       return ret(lhs.count() - rhs.count());
     }
 
     template<typename Rep2,
              Requires<!is_quantity<Rep2>> = true>
     [[nodiscard]] friend constexpr auto operator*(const quantity& q, const Rep2& v)
-        -> quantity<decltype(std::declval<Rep>() * std::declval<Rep2>())>
+        -> quantity<Unit, decltype(std::declval<Rep>() * std::declval<Rep2>())>
     {
-      using ret = quantity<decltype(q.count() * v)>;
+      using ret = quantity<Unit, decltype(q.count() * v)>;
       return ret(q.count() * v);
     }
 
@@ -176,14 +180,14 @@ namespace units {
     template<typename Rep2,
              Requires<!is_quantity<Rep2>> = true>
     [[nodiscard]] friend constexpr auto operator/(const quantity& q, const Rep2& v)
-        -> quantity<decltype(std::declval<Rep>() / std::declval<Rep2>())>
+        -> quantity<Unit, decltype(std::declval<Rep>() / std::declval<Rep2>())>
     {
-      using ret = quantity<decltype(q.count() / v)>;
+      using ret = quantity<Unit, decltype(q.count() / v)>;
       return ret(q.count() / v);
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr auto operator/(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr auto operator/(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
         -> decltype(std::declval<Rep>() / std::declval<Rep2>())
     {
       return lhs.count() / rhs.count();
@@ -201,43 +205,43 @@ namespace units {
     template<typename Rep2, typename T = Rep,
              Requires<!treat_as_floating_point<T> &&
                       !treat_as_floating_point<Rep2>> = true>
-    [[nodiscard]] friend constexpr quantity operator%(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr quantity operator%(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return quantity(lhs.count() % rhs.count());
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator==(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator==(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return lhs.count() == rhs.count();
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator!=(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator!=(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return !(lhs == rhs);
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator<(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator<(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return lhs.count() < rhs.count();
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator<=(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator<=(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return !(rhs < lhs);
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator>(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator>(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return rhs < lhs;
     }
 
     template<typename Rep2>
-    [[nodiscard]] friend constexpr bool operator>=(const quantity& lhs, const quantity<Rep2>& rhs)
+    [[nodiscard]] friend constexpr bool operator>=(const quantity& lhs, const quantity<Unit, Rep2>& rhs)
     {
       return !(lhs < rhs);
     }

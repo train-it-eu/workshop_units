@@ -20,17 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "quantity.h"
-#include <utility>
+#pragma once
 
-namespace {
+#include <numeric>
+#include <ratio>
 
-  using namespace units;
+namespace units {
 
-  using metre = unit<std::ratio<1>>;
-  using kilometre = unit<std::ratio<1000>>;
+  // common_ratio
 
-  static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
-  static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
+  namespace detail {
 
-}  // namespace
+    template<typename R1, typename R2>
+    struct common_ratio_impl {
+      static constexpr std::intmax_t gcd_num = std::gcd(R1::num, R2::num);
+      static constexpr std::intmax_t gcd_den = std::gcd(R1::den, R2::den);
+      using type = std::ratio<gcd_num, (R1::den / gcd_den) * R2::den>;
+    };
+
+  }
+
+  template<typename R1, typename R2>
+  using common_ratio = typename detail::common_ratio_impl<R1, R2>::type;
+
+}

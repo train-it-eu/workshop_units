@@ -20,17 +20,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "quantity.h"
-#include <utility>
+#pragma once
 
-namespace {
+#include <ratio>
+#include <type_traits>
 
-  using namespace units;
+namespace units {
 
-  using metre = unit<std::ratio<1>>;
-  using kilometre = unit<std::ratio<1000>>;
+  // is_ratio
 
-  static_assert(quantity_cast<quantity<metre, int>>(quantity<kilometre, int>(2)).count() == 2000);
-  static_assert(quantity_cast<quantity<kilometre, int>>(quantity<metre, int>(2000)).count() == 2);
+  template<typename T>
+  inline constexpr bool is_ratio = false;
 
-}  // namespace
+  template<intmax_t Num, intmax_t Den>
+  inline constexpr bool is_ratio<std::ratio<Num, Den>> = true;
+
+  // unit
+
+  template<typename Ratio>
+  struct unit {
+    using ratio = Ratio;
+
+    static_assert(is_ratio<ratio>, "ratio must be a specialization of std::ratio");
+    static_assert(ratio::num * ratio::den > 0, "ratio must be positive");
+  };
+
+  // is_unit
+
+  template<typename T>
+  inline constexpr bool is_unit = false;
+
+  template<typename Ratio>
+  inline constexpr bool is_unit<unit<Ratio>> = true;
+
+}  // namespace units

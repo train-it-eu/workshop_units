@@ -53,6 +53,7 @@ add_library(units
     
     src/tests.cpp
     
+    include/common_ratio.h
     include/unit.h
     include/quantity.h
 )
