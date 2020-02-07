@@ -44,34 +44,35 @@ static_assert(2_km / 2_kmph == 1_h);
 template<int Id, int Value>
 using e = exp<dim_id<Id>, Value>;
 
-template<typename TypeList>
-using exp_sort = type_list_sort<TypeList, exp_less>;
-
-static_assert(std::is_same_v<exp_sort<dimension<e<1, 1>, e<0, -1>>>, dimension<e<0, -1>, e<1, 1>>>);
-
-static_assert(std::is_same_v<exp_invert<e<0, 1>>, e<0, -1>>);
+static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, 1>, e<1, 1>>, dimension<e<0, 2>, e<1, 2>>>);
+static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
+static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
 ```
 
-1. In a new header file `dimension.h` add `dim_id<int>` as an alias to `std::integral_constant`
-   containing that value.
-
-2. Add definition of `exp`
+1. Create `make_dimension` that always will provide consistent dimension specifications:
 
     ```cpp
-    template<typename BaseDimension, int Value>
-    struct exp {
-      using dimension = BaseDimension;
-      static constexpr int value = Value;
-    };
+    namespace detail {
+
+      template<typename D>
+      struct dim_consolidate;
+
+      template<>
+      struct dim_consolidate<dimension<>> {
+        using type = dimension<>;
+      };
+
+      // ...
+
+    }  // namespace detail
+
+    template<typename... Es>
+    using make_dimension = typename detail::dim_consolidate<type_list_sort<dimension<Es...>, exp_less>>::type;
     ```
 
-3. Add `exp_less` predicate that will compare values stored in `exp`.
-
-4. Add `exp_invert` and `exp_invert_t` helper that will invert the exponent value stored in `exp`.
-
-5. Add `dimension`:
-
-    ```cpp
-    template<typename... Exponents>
-    struct dimension;
-    ```
+    After running `make_dimension`:
+    - all exponents are sorted and packed into `dimension`
+    - in case there is more than one exponent with the same `dim_id` on the list, all `exp`
+      with the same id should be consolidated into one with a proper resulting exponent value
+    - if all existing dimensions will eliminate themselves (accumulation results with `0`)
+      `dimension<>` is returned

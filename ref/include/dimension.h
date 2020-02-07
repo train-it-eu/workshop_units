@@ -20,17 +20,55 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "dimension.h"
+#pragma once
 
-namespace {
+#include "type_list.h"
 
-  using namespace units;
+namespace units {
 
-  template<int Id, int Value>
-  using e = exp<dim_id<Id>, Value>;
+  // dim_id
 
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, 1>, e<1, 1>>, dimension<e<0, 2>, e<1, 2>>>);
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
-  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
+  template<int UniqueValue>
+  using dim_id = std::integral_constant<int, UniqueValue>;
 
-}  // namespace
+  // dim_id_less
+
+  template<typename D1, typename D2>
+  struct dim_id_less : std::bool_constant<D1::value < D2::value> {};
+
+  // exp
+
+  template<typename BaseDimension, int Value>
+  struct exp {
+    using dimension = BaseDimension;
+    static constexpr int value = Value;
+  };
+
+  // exp_less
+
+  template<typename E1, typename E2>
+  struct exp_less : dim_id_less<typename E1::dimension, typename E2::dimension> {};
+
+  // exp_invert
+
+  namespace detail {
+
+    template<typename Exponent>
+    struct exp_invert_impl;
+
+    template<typename BaseDimension, int Value>
+    struct exp_invert_impl<exp<BaseDimension, Value>> {
+      using type = exp<BaseDimension, -Value>;
+    };
+
+  }
+
+  template<typename Exponent>
+  using exp_invert = typename detail::exp_invert_impl<Exponent>::type;
+
+  // dimension
+
+  template<typename... Exponents>
+  struct dimension;
+
+}  // namespace units

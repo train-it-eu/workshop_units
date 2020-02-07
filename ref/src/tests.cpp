@@ -361,4 +361,20 @@ namespace {
   static_assert(std::is_same_v<exp_invert<e<0, 1>>, e<0, -1>>);
   static_assert(std::is_same_v<exp_invert<e<1, -1>>, e<1, 1>>);
 
+  // make_dimension
+
+  static_assert(std::is_same_v<make_dimension<e<0, 1>>, dimension<e<0, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>>, dimension<e<0, 1>, e<1, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<1, 1>, e<0, 1>>, dimension<e<0, 1>, e<1, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<1, 1>, e<1, 1>>, dimension<e<1, 2>>>);
+  static_assert(std::is_same_v<make_dimension<e<1, 1>, e<1, -1>>, dimension<>>);
+
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, 1>, e<1, 1>>, dimension<e<0, 2>, e<1, 2>>>);
+  static_assert(std::is_same_v<make_dimension<e<0, -1>, e<1, -1>, e<0, -1>, e<1, -1>>, dimension<e<0, -2>, e<1, -2>>>);
+
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<1, -1>>, dimension<e<0, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<0, -1>, e<1, 1>>, dimension<e<1, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>>, dimension<e<1, 1>>>);
+  static_assert(std::is_same_v<make_dimension<e<0, 1>, e<1, 1>, e<0, -1>, e<1, -1>>, dimension<>>);
+
 }  // namespace
