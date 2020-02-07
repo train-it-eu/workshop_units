@@ -26,12 +26,15 @@ namespace {
 
   using namespace units;
 
-  constexpr quantity<int> d1(1), d2(2);
-  constexpr quantity<int> d3 = d1 + d2;
-  static_assert(d3.count() == 3);
+  constexpr quantity<int> kilometre(1000);
+  constexpr quantity<> d(kilometre);
+  static_assert(d.count() == 1000);
 
-  constexpr quantity<> d4(3.0);
-  constexpr quantity<> d5 = d4 + d1;
-  static_assert(d5.count() == 4.0);
+  static_assert((++quantity<int>(kilometre)).count() == 1001);
+  static_assert((quantity<int>(kilometre)++).count() == 1000);
+  static_assert((--quantity<int>(kilometre)).count() == 999);
+  static_assert((quantity<int>(kilometre)--).count() == 1000);
+
+  static_assert(quantity<int>(kilometre) % 10 == quantity<int>(0));
 
 }  // namespace

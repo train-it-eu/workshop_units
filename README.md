@@ -41,34 +41,37 @@ static_assert(2_km / 2_kmph == 1_h);
 ## Task
 
 ```cpp
-constexpr quantity<int> d1(1), d2(2);
-constexpr quantity<int> d3 = d1 + d2;
-static_assert(d3.count() == 3);
+constexpr quantity<int> kilometre(1000);
+constexpr quantity<> d(kilometre);
+static_assert(d.count() == 1000);
 
-constexpr quantity<> d4(3.0);
-constexpr quantity<> d5 = d4 + d1;
-static_assert(d5.count() == 4.0);
+static_assert((++quantity<int>(kilometre)).count() == 1001);
+static_assert((quantity<int>(kilometre)++).count() == 1000);
+static_assert((--quantity<int>(kilometre)).count() == 999);
+static_assert((quantity<int>(kilometre)--).count() == 1000);
+
+static_assert(quantity<int>(kilometre) % 10 == quantity<int>(0));
 ```
 
-
-1. Convert `quantity` to the following class template
-
-    ```cpp
-    template<typename Rep = double>
-    class quantity;
-    ```
-
-2. Update the `quantity` class to
-    - provide `rep` member type in its interface
-    - use `Rep` instead of `double` in its interface and implementation.
-3. Make sure that `quantity` type is not used as class template `Rep` argument.
-4. Modify explicit constructor to take `Rep2` and ensure it is not of a quantity
-    type:
+1. Add converting constructor
 
     ```cpp
-    template<typename Rep2,
-             Requires<!is_quantity<Rep2>> = true>
-    constexpr explicit quantity(const Rep2& v);
+    template<class Rep2>
+    constexpr quantity(const quantity<Rep2>& q);
     ```
+
+2. Both converting constructors should participate in the overload resolution only if:
+    - destination `Rep` is convertible from source `Rep`
+    - either destination `Rep` is of floating point type or source `Rep` is not of floating
+      point type
+
+    (that is, a `quantity` with an integer representation cannot be constructed from a
+    floating-point value, but a `quantity` with a floating-point representation can be
+    constructed from an integer value)
+
+3. Add pre- and post- increment and decrement operators.
+
+4. Add support for modulo operators and ensure that they do not participate in overload
+    resolution for floating-point representations.
 
 5. Ensure that all commented checks in `tests.cpp` produce a compile-time error.

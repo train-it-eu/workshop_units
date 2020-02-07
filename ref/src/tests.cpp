@@ -42,7 +42,8 @@ namespace {
   static_assert(quantity<>().count() == 0);
   static_assert(quantity<int>(1).count() == 1);
   static_assert(quantity<int>(1000).count() == 1000);
-  
+  static_assert(quantity<>(quantity<int>(1000)).count() == quantity<int>(1000).count());
+
   static_assert(quantity<int>(1).count() == 1);
 //  static_assert(quantity<int>(1.0).count() == 1);   // should not compile
   static_assert(quantity<float>(1.0).count() == 1.0);
@@ -52,6 +53,7 @@ namespace {
   static_assert(quantity<int>(quantity<int>(1000)).count() == 1000);
 //  static_assert(quantity<int>(quantity<float>(1000.0)).count() == 1000);   // should not compile
   static_assert(quantity<float>(quantity<float>(1000.0)).count() == 1000.0);
+  static_assert(quantity<float>(quantity<int>(1000)).count() == 1000.0);
 
   // assignment operator
 
@@ -76,12 +78,29 @@ namespace {
   static_assert((+(-quantity<int>(1000))).count() == -1000);
   static_assert((-(-quantity<int>(1000))).count() == 1000);
 
+  // binary member operators
+
+  auto test_incr = [](auto v, auto func) {
+    auto vv = func(v);
+    return std::make_pair(v, vv);
+  };
+  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return v++; }) == std::make_pair(quantity<int>(1001), quantity<int>(1000)));
+  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return ++v; }) == std::make_pair(quantity<int>(1001), quantity<int>(1001)));
+  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return v--; }) == std::make_pair(quantity<int>(999), quantity<int>(1000)));
+  static_assert(test_incr(quantity<int>(1000), [](auto& v) { return --v; }) == std::make_pair(quantity<int>(999), quantity<int>(999)));
+
   // compound assignment
 
   static_assert((quantity<>(1) += quantity<>(1)).count() == 2);
   static_assert((quantity<>(2) -= quantity<>(1)).count() == 1);
   static_assert((quantity<>(1) *= 2).count() == 2);
   static_assert((quantity<>(2) /= 2).count() == 1);
+  static_assert((quantity<int>(7) %= 2).count() == 1);
+  static_assert((quantity<int>(7) %= quantity<int>(2)).count() == 1);
+//  static_assert((quantity<>(7.) %= 2).count() == 1);                  // should not compile
+//  static_assert((quantity<int>(7) %= 2.).count() == 1);               // should not compile
+//  static_assert((quantity<>(7.) %= quantity<int>(2)).count() == 1);   // should not compile
+//  static_assert((quantity<int>(7) %= quantity<>(2.)).count() == 1);   // should not compile
 
   // non-member arithmetic operators
 
@@ -97,12 +116,20 @@ namespace {
   static_assert(std::is_same_v<decltype(quantity<float>() / 1), quantity<float>>);
   static_assert(std::is_same_v<decltype(quantity<int>() / quantity<float>()), float>);
   static_assert(std::is_same_v<decltype(quantity<float>() / quantity<int>()), float>);
+  static_assert(std::is_same_v<decltype(quantity<int>() % short(1)), quantity<int>>);
+  static_assert(std::is_same_v<decltype(quantity<int>() % quantity<short>(1)), quantity<int>>);
   static_assert((quantity<>(1) + quantity<int>(1000)).count() == 1001);
   static_assert((quantity<int>(1000) - quantity<>(1)).count() == 999);
   static_assert((quantity<>(2) * 2).count() == 4);
   static_assert((3 * quantity<>(3)).count() == 9);
   static_assert((quantity<>(4) / 2).count() == 2);
   static_assert(quantity<>(4) / quantity<>(2) == 2);
+  static_assert((quantity<int>(7) % 2).count() == 1);
+  static_assert((quantity<int>(7) % quantity<int>(2)).count() == 1);
+//  static_assert((quantity<>(7.) % 2).count() == 1);                 // should not compile
+//  static_assert((quantity<int>(7) % 2.).count() == 1);              // should not compile
+//  static_assert((quantity<>(7.) % quantity<int>(2)).count() == 1);  // should not compile
+//  static_assert((quantity<int>(7) % quantity<>(2.)).count() == 1);  // should not compile
 
   // comparators
 
